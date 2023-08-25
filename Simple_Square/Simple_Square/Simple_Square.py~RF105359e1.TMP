@@ -1,7 +1,6 @@
 from turtle import Screen
 import pygame
 import time
-import cmath
 
 class Vector:
     def __init__(self, x, y):
@@ -16,15 +15,6 @@ class Vector:
     
     def __sub__(self, other):
         return Vector(self.x - other.x, self.y - other.y)
-    
-    def __dot__(self, other):
-        return self.x * other.x + self.y * other.y
-        
-    def __scale__(self, scalar):
-        return Vector(self.x * scalar, self.y * scalar)
-    
-    def __length__(self):
-        return cmath.sqrt(self.x**2 + self.y**2)
 
 pygame.init()
 
@@ -40,9 +30,8 @@ y = 300
 first_vector = Vector(x, y)
 second_vector = Vector(100, 50)
 
-third_vector = Vector.__dot__(first_vector, second_vector)
-length = Vector.__length__(first_vector)
-print(length)
+third_vector = Vector.__add__(first_vector, second_vector)
+print(third_vector)
 
 while(True):
     for event in pygame.event.get():
