@@ -22,7 +22,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Game_Numbers.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Simple_Square.py" />
+    <Compile Include="Vector.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
