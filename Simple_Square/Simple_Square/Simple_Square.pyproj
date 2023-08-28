@@ -25,6 +25,9 @@
     <Compile Include="Game_Numbers.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Player.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Simple_Square.py" />
     <Compile Include="Vector.py">
       <SubType>Code</SubType>

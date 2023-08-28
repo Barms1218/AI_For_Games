@@ -11,9 +11,6 @@ clock = pygame.time.Clock()
 
 game_display = pygame.display.set_mode((Game_Numbers.screen_size.x, Game_Numbers.screen_size.y))
 
-x = 400
-y = 300
-
 while(True):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
