@@ -1,16 +1,16 @@
 import pygame
-import Vector
+from Vector import Vector
 import Game_Numbers
 
 class Player:
-   def __init__(self, position, velocity, size):
+   def __init__(self, position, velocity, size, color):
       self.position = position
       self.velocity = velocity
       self.size = size
+      self.color = color
    
    def draw(self, screen):
-      pygame.draw.rect(screen, Game_Numbers.player_color, 
-                       pygame.Rect(self.position.x, self.position.y, self.size.x, self.size.y))
+      pygame.draw.rect(screen, self.color, pygame.Rect(self.position.x, self.position.y, self.size, self.size))
        
    def update(self):
         keys = pygame.key.get_pressed()
@@ -19,11 +19,11 @@ class Player:
         left = keys[pygame.K_a]
         right = keys[pygame.K_d]
         if up:
-            y = y - 1
+            self.position.y = self.position.y - 1
         if down:
-            y = y + 1
+            self.position.y = self.position.y + 1
         if left:
-            x = x - 1
+            self.position.x = self.position.x - 1
         if right:
-            x = x + 1
+            self.position.x = self.position.x + 1
       
