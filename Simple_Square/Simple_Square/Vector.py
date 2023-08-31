@@ -28,3 +28,9 @@ class Vector:
             return Vector(0, 0)
         else:
             return Vector(self.x / self.length(), self.y / self.length())
+
+    def zero():
+        return Vector(0.0, 0.0)
+
+    def one():
+        return Vector(1.0, 1.0)
