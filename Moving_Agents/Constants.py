@@ -1,0 +1,9 @@
+#screen values
+
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+SCREEN_COLOR = (100, 149, 237)
+FRAME_RATE = 60
+
+#player values
+PLAYER_COLOR = (0, 255, 0)
