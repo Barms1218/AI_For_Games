@@ -2,6 +2,7 @@ import pygame
 from Vector import Vector
 import Constants
 from Player import Player
+from Enemy import Enemy
 
 pygame.init()
 
@@ -9,9 +10,11 @@ clock = pygame.time.Clock()
 
 screen = pygame.display.set_mode(
     (Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT))
-screen.fill(Constants.SCREEN_COLOR)
 
-player = Player(Vector(screen.get_width() / 2, screen.get_height() / 2), 25, 1)
+
+player = Player(Vector(screen.get_width() / 2, screen.get_height() / 2), Constants.PLAYER_SIZE, Constants.PLAYER_SPEED)
+enemy = Enemy(Vector(Constants.ENEMY_START, Constants.ENEMY_START), Constants.ENEMY_SIZE, Constants.ENEMY_SPEED)
+
 
 test_vector_one = Vector(300, 400)
 test_vector_two = Vector(100, 150)
@@ -32,6 +35,10 @@ while True:
         if pygame.event == pygame.QUIT:
             pygame.quit
             quit()
+    player.update()
     player.draw(screen)
-    clock.tick(60)
-    pygame.display.update()
+    enemy.draw(screen)
+    
+    pygame.display.flip()
+    clock.tick(Constants.FRAME_RATE)
+    screen.fill(Constants.SCREEN_COLOR)
