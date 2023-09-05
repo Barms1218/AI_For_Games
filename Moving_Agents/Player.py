@@ -1,6 +1,7 @@
 import pygame
 from Vector import Vector
 import Constants
+import random
 
 
 class Player:
@@ -10,28 +11,21 @@ class Player:
         self.speed = speed
         self.vel = Vector.zero()
         self.center = self.calc_center()
+        self.enemy_positions = list()
 
     def __str__(self):
         return f"Player size: {self.size}, player position: {self.pos}, player center: "
 
-    def update(self):
-        keys = pygame.key.get_pressed()
-        up = keys[pygame.K_w]
-        down = keys[pygame.K_s]
-        left = keys[pygame.K_a]
-        right = keys[pygame.K_d]
-        movement = Vector.zero()
-        if up:
-            movement.y = movement.y - 1
-        if down:
-            movement.y = movement.y + 1
-        if left:
-            movement.x = movement.x - 1
-        if right:
-            movement.x = movement.x + 1
-
-        self.vel = movement.normalize()
-        self.pos += movement
+    def update(self, enemies):
+        for enemy in enemies:
+            self.enemy_positions.append(enemy.pos)
+            
+        target = random.choice(self.enemy_positions)
+        target_vector = self.pos.__sub__(target)
+        #self.vel = movement.normalize()
+        #self.pos += movement
+        desired_velocity = target_vector.scale(self.speed)
+        self.pos -= desired_velocity.normalize()
         self.center = self.calc_center()
 
     def draw(self, screen):
