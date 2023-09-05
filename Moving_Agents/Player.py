@@ -2,6 +2,7 @@ import pygame
 from Vector import Vector
 import Constants
 import random
+import math
 
 
 class Player:
@@ -12,19 +13,22 @@ class Player:
         self.vel = Vector.zero()
         self.center = self.calc_center()
         self.enemy_positions = list()
+        self.enemy_distances = list()
 
     def __str__(self):
         return f"Player size: {self.size}, player position: {self.pos}, player center: "
 
     def update(self, enemies):
         for enemy in enemies:
+            distance = self.pos.__sub__(enemy.pos).length
+            self.enemy_distances.append(distance)
             self.enemy_positions.append(enemy.pos)
             
         target = random.choice(self.enemy_positions)
         target_vector = self.pos.__sub__(target)
-        #self.vel = movement.normalize()
-        #self.pos += movement
+        print(distance)
         desired_velocity = target_vector.scale(self.speed)
+        seek_force = self.vel.__sub__(desired_velocity)
         self.pos -= desired_velocity.normalize()
         self.center = self.calc_center()
 
