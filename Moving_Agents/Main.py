@@ -13,8 +13,10 @@ screen = pygame.display.set_mode(
 
 enemies = list()
 
-player = Player(Vector(screen.get_width() / 2, screen.get_height() / 2), Constants.PLAYER_SIZE, Constants.PLAYER_SPEED)
-enemy = Enemy(Vector(Constants.ENEMY_START, Constants.ENEMY_START), Constants.ENEMY_SIZE, Constants.ENEMY_SPEED)
+player = Player(Vector(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2),
+                Constants.PLAYER_SIZE, Constants.PLAYER_SPEED)
+enemy = Enemy(Vector(Constants.ENEMY_START, Constants.ENEMY_START),
+              Constants.ENEMY_SIZE, Constants.ENEMY_SPEED)
 
 enemies.append(enemy)
 
@@ -26,8 +28,9 @@ while True:
             quit()
     player.update(enemies)
     player.draw(screen)
+    enemy.update(player)
     enemy.draw(screen)
-    
+
     pygame.display.flip()
     clock.tick(Constants.FRAME_RATE)
     screen.fill(Constants.SCREEN_COLOR)

@@ -1,25 +1,23 @@
 import pygame
 import Constants
 from Vector import Vector
+from Agent import Agent
 
 
-class Enemy:
+class Enemy(Agent):
     def __init__(self, position, size, speed):
         self.pos = position
         self.size = size
         self.speed = speed
-        self.vel = Vector.zero()
-        self.center = self.calc_center()
+        self.center = super().calc_center()
+        super().__init__(position, size, speed, Constants.ENEMY_COLOR)
+
+    def update(self, player):
+        player_distance = self.pos.__sub__(player.pos).length()
+        # print(player_distance)
+        if player_distance < 50:
+            super().update(self.pos.__add__(player.pos))
 
     def __str__(self):
         print(
             f"Enemy size: {self.size}, enemy position: {self.position}, enemy center: {self.center}")
-
-    def draw(self, screen):
-        body = pygame.draw.rect(screen, Constants.ENEMY_COLOR, pygame.Rect(
-            self.pos.x, self.pos.y, self.size, self.size))
-        end_pos = (self.center.x + self.vel.x * 125, self.center.y + self.vel.y * 125)
-        debug_line = pygame.draw.line(screen, (0, 0, 255), (self.center.x, self.center.y), end_pos, 3)
-        
-    def calc_center(self):
-        return self.pos + (Vector.one().scale(self.size / 2))
