@@ -18,6 +18,9 @@ class Agent:
         self.pos -= desired_velocity.normalize()
         self.center = self.calc_center()
 
+        if self.pos.__sub__(target_vector).length() < 100:
+            desired_velocity = target_vector.scale(3)
+
     def draw(self, screen):
         body = pygame.draw.rect(screen, self.color, pygame.Rect(
             self.pos.x, self.pos.y, self.size, self.size))

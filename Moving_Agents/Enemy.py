@@ -2,6 +2,8 @@ import pygame
 import Constants
 from Vector import Vector
 from Agent import Agent
+import math
+import random
 
 
 class Enemy(Agent):
@@ -12,12 +14,17 @@ class Enemy(Agent):
         self.center = super().calc_center()
         super().__init__(position, size, speed, Constants.ENEMY_COLOR)
 
-    def update(self, player):
-        player_distance = self.pos.__sub__(player.pos).length()
-        # print(player_distance)
-        if player_distance < 50:
-            super().update(self.pos.__add__(player.pos))
-
     def __str__(self):
         print(
             f"Enemy size: {self.size}, enemy position: {self.position}, enemy center: {self.center}")
+
+    def update(self, player):
+        player_distance = self.pos.__sub__(player.pos).length()
+
+        if player_distance < 50:
+            super().update(self.pos.__add__(player.pos))
+        else:
+            theta = math.acos(random.randint(-1, 1))
+            x_pos = math.cos(theta) - math.sin(theta)
+            y_pos = math.sin(theta) + math.cos(theta)
+            super().update(Vector(x_pos, y_pos))

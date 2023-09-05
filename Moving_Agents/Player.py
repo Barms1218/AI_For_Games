@@ -30,9 +30,7 @@ class Player(Agent):
 
         # seek_force = self.vel.__sub__(desired_velocity)
 
-        # self.center = super().calc_center()
         super().update(target_vector)
-        # super().calc_center()
 
     def choose_target(self):
         self.enemy_distances.sort()
