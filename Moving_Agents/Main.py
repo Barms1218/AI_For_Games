@@ -20,7 +20,6 @@ enemy = Enemy(Vector(Constants.ENEMY_START, Constants.ENEMY_START),
 
 enemies.append(enemy)
 
-
 while True:
     for event in pygame.event.get():
         if pygame.event == pygame.QUIT:

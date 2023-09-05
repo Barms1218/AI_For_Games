@@ -11,6 +11,7 @@ class Enemy(Agent):
         self.pos = position
         self.size = size
         self.speed = speed
+        self.vel = Vector.one()
         self.center = super().calc_center()
         super().__init__(position, size, speed, Constants.ENEMY_COLOR)
 
@@ -24,7 +25,14 @@ class Enemy(Agent):
         if player_distance < 50:
             super().update(self.pos.__add__(player.pos))
         else:
-            theta = math.acos(random.randint(-1, 1))
-            x_pos = math.cos(theta) - math.sin(theta)
-            y_pos = math.sin(theta) + math.cos(theta)
-            super().update(Vector(x_pos, y_pos))
+            # theta = math.acos(random.randint(-1, 1))
+            # x_pos = math.cos(theta) - math.sin(theta)
+            # y_pos = math.sin(theta) + math.cos(theta)
+            wander_angle = random.uniform(0, 2 * math.pi)
+            change = random.uniform(-0.5, 0.5)
+            wander_angle += change
+
+            # Calculate new velocity vector
+            self.vel.x = self.speed * math.cos(wander_angle)
+            self.vel.y = self.speed * math.sin(wander_angle)
+            super().update(Vector(math.cos(wander_angle), math.sin(wander_angle)))
