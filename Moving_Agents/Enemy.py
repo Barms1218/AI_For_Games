@@ -20,19 +20,20 @@ class Enemy(Agent):
             f"Enemy size: {self.size}, enemy position: {self.position}, enemy center: {self.center}")
 
     def update(self, player):
+        player_vector = self.pos.__sub__(player.pos)
         player_distance = self.pos.__sub__(player.pos).length()
 
         if player_distance < 50:
-            super().update(self.pos.__add__(player.pos))
+            super().update(player_vector)
         else:
-            # theta = math.acos(random.randint(-1, 1))
-            # x_pos = math.cos(theta) - math.sin(theta)
-            # y_pos = math.sin(theta) + math.cos(theta)
-            wander_angle = random.uniform(0, 2 * math.pi)
-            change = random.uniform(-0.5, 0.5)
-            wander_angle += change
+            # get angle between -1 and 1
+            theta = math.acos(random.randint(-1, 1))
+            # create wander direction with cos and sin of angle
+            wander_direction = Vector(math.cos(theta), math.sin(theta))
+            # if random number > 50 add 180
 
-            # Calculate new velocity vector
-            self.vel.x = self.speed * math.cos(wander_angle)
-            self.vel.y = self.speed * math.sin(wander_angle)
-            super().update(Vector(math.cos(wander_angle), math.sin(wander_angle)))
+            # wanderpoint = velocity + position
+            wander_point = self.vel + self.pos
+            # wanderpoint += wanderdirection
+            wander_point += wander_direction
+            super().update(wander_point)

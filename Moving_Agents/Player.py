@@ -12,28 +12,24 @@ class Player(Agent):
         self.size = size
         self.speed = speed
         self.enemy_positions = list()
-        self.enemy_distances = list()
+        self.vel = Vector.one()
         self.center = super().calc_center()
         super().__init__(position, size, speed, Constants.PLAYER_COLOR)
 
     def __str__(self):
-        return f"Player size: {self.size}, player position: {self.pos}, player center: "
+        return f"Player size: {self.size}, player position: {self.pos}, player center: {self.center}, player velocity: {self.vel}"
 
     def update(self, enemies):
         target_vector = None
         for enemy in enemies:
-            distance = self.pos.__sub__(enemy.pos).length()
-            self.enemy_distances.append(distance)
             self.enemy_positions.append(enemy.pos)
         if target_vector == None:
             target_vector = self.choose_target()
 
         # seek_force = self.vel.__sub__(desired_velocity)
 
-        super().update(target_vector)
+        super().update(self.choose_target())
 
     def choose_target(self):
-        self.enemy_distances.sort()
         target = random.choice(self.enemy_positions)
-        target_vector = self.pos.__sub__(target)
-        return target_vector
+        return target
