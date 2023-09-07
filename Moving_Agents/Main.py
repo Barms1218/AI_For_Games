@@ -27,7 +27,6 @@ while True:
             quit()
     player.update(enemies)
     player.draw(screen)
-    print(player)
     enemy.update(player)
     enemy.draw(screen)
 

@@ -12,6 +12,9 @@ class Enemy(Agent):
         self.size = size
         self.speed = speed
         self.vel = Vector.one()
+        self.fleeing = False
+        self.player_vector = None
+        self.wander_point = None
         self.center = super().calc_center()
         super().__init__(position, size, speed, Constants.ENEMY_COLOR)
 
@@ -20,11 +23,12 @@ class Enemy(Agent):
             f"Enemy size: {self.size}, enemy position: {self.position}, enemy center: {self.center}")
 
     def update(self, player):
-        player_vector = self.pos.__sub__(player.pos)
+        self.player_vector = self.pos.__sub__(player.pos)
         player_distance = self.pos.__sub__(player.pos).length()
 
-        if player_distance < 50:
-            super().update(player_vector)
+        if player_distance < 200:
+            self.fleeing = True
+            super().update(self.player_vector)
         else:
             # get angle between -1 and 1
             theta = math.acos(random.randint(-1, 1))
@@ -33,7 +37,9 @@ class Enemy(Agent):
             # if random number > 50 add 180
 
             # wanderpoint = velocity + position
-            wander_point = self.vel + self.pos
+            self.player_vector = self.vel + self.pos
             # wanderpoint += wanderdirection
-            wander_point += wander_direction
-            super().update(wander_point)
+            self.player_vector += wander_direction
+            self.fleeing = False
+            super().update(self.player_vector)
+

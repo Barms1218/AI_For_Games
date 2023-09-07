@@ -13,6 +13,7 @@ class Player(Agent):
         self.speed = speed
         self.enemy_positions = list()
         self.vel = Vector.one()
+        self.target_vector = None
         self.center = super().calc_center()
         super().__init__(position, size, speed, Constants.PLAYER_COLOR)
 
@@ -20,15 +21,14 @@ class Player(Agent):
         return f"Player size: {self.size}, player position: {self.pos}, player center: {self.center}, player velocity: {self.vel}"
 
     def update(self, enemies):
-        target_vector = None
         for enemy in enemies:
             self.enemy_positions.append(enemy.pos)
-        if target_vector == None:
-            target_vector = self.choose_target()
+        if self.target_vector == None:
+            self.target_vector = self.choose_target()
 
         # seek_force = self.vel.__sub__(desired_velocity)
-
-        super().update(self.choose_target())
+        #if pygame.Rect.collidelist(self.rect, target.rect)
+        super().update(self.target_vector)
 
     def choose_target(self):
         target = random.choice(self.enemy_positions)
