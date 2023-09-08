@@ -2,34 +2,31 @@ import pygame
 from Vector import Vector
 import Constants
 import random
-import math
 from Agent import Agent
 
 
 class Player(Agent):
     def __init__(self, position, size, speed):
-        self.pos = position
-        self.size = size
-        self.speed = speed
-        self.enemy_positions = list()
-        self.vel = Vector.one()
-        self.target_vector = None
-        self.center = super().calc_center()
         super().__init__(position, size, speed, Constants.PLAYER_COLOR)
+        self.target_vector = None
+        self.target = None
+        self.center = self.calc_center()
+
 
     def __str__(self):
         return f"Player size: {self.size}, player position: {self.pos}, player center: {self.center}, player velocity: {self.vel}"
 
     def update(self, enemies):
-        for enemy in enemies:
-            self.enemy_positions.append(enemy.pos)
-        if self.target_vector == None:
-            self.target_vector = self.choose_target()
-
-        # seek_force = self.vel.__sub__(desired_velocity)
-        #if pygame.Rect.collidelist(self.rect, target.rect)
+        if self.target_vector == None or super().collision_detection(self.target.rect):
+            self.target = enemies[random.randint(0, len(enemies) - 1)]
+        self.target_vector = self.target.pos
+            
         super().update(self.target_vector)
 
-    def choose_target(self):
-        target = random.choice(self.enemy_positions)
-        return target
+
+    def draw(self, screen):
+        end_pos = (self.center.x - self.target_vector.x * 10,
+                   self.center.y - self.target_vector.y * 10)
+        super().draw(screen, end_pos, (255, 0 , 0))
+        # debug_line = pygame.draw.line(
+        #     screen, (255, 0, 0), (self.center.x, self.center.y), (self.target.center.x, self.target.center.y), 3)
