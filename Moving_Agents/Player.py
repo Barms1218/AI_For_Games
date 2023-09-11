@@ -12,21 +12,21 @@ class Player(Agent):
         self.target = None
         self.center = self.calc_center()
 
-
     def __str__(self):
         return f"Player size: {self.size}, player position: {self.pos}, player center: {self.center}, player velocity: {self.vel}"
 
     def update(self, enemies):
-        if self.target_vector == None or super().collision_detection(self.target.rect):
+        if self.target_vector == None or super().collision_detected(self.target.rect):
             self.target = enemies[random.randint(0, len(enemies) - 1)]
-        self.target_vector = self.target.pos
-            
-        super().update(self.target_vector)
-
+        self.target_vector = self.target.pos.__sub__(self.pos)
+        super().update_velocity(self.target_vector)
+        applied_force = self.normal_velocity.scale(
+            Constants.PLAYER_FORCE_WEIGHT)
+        applied_force = applied_force.normalize().scale(Constants.DELTA_TIME)
+        self.target_vector = applied_force
+        super().update(applied_force)
 
     def draw(self, screen):
-        end_pos = (self.center.x - self.target_vector.x * 10,
-                   self.center.y - self.target_vector.y * 10)
-        super().draw(screen, end_pos, (255, 0 , 0))
-        # debug_line = pygame.draw.line(
-        #     screen, (255, 0, 0), (self.center.x, self.center.y), (self.target.center.x, self.target.center.y), 3)
+        end_pos = (self.center.x + self.target_vector.x * 1000,
+                   self.center.y + self.target_vector.y * 1000)
+        super().draw(screen, end_pos, (255, 0, 0))
