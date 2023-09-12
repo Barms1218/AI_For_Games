@@ -19,11 +19,10 @@ class Agent:
         normalized_velocity = self.vel.normalize()
         desired_velocity = normalized_velocity.scale(self.speed)
         self.pos += desired_velocity
-        self.pos.x = max(0, min(self.pos.x, 800))
-        self.pos.y = max(0, min(self.pos.y, 600))
+        self.pos.x = max(0, min(self.pos.x, 800 - self.size))
+        self.pos.y = max(0, min(self.pos.y, 600 - self.size))
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
         self.center = self.calc_center()
-
 
     def draw(self, screen, end_pos, line_color):
         body = pygame.draw.rect(screen, self.color, self.rect)
@@ -32,6 +31,6 @@ class Agent:
 
     def calc_center(self):
         return self.pos + (Vector.one().scale(self.size / 2))
-    
+
     def collision_detection(self, rect):
         return pygame.Rect.colliderect(self.rect, rect)

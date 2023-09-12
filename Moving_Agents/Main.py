@@ -18,7 +18,7 @@ player = Player(Vector(Constants.SCREEN_WIDTH * 0.75, Constants.SCREEN_HEIGHT * 
                 Constants.PLAYER_SIZE, Constants.PLAYER_SPEED)
 for i in range(10):
     enemy = Enemy(Vector(random.randint(100, 700), random.randint(100, 500)),
-              Constants.ENEMY_SIZE, Constants.ENEMY_SPEED)
+                  Constants.ENEMY_SIZE, Constants.ENEMY_SPEED)
     enemies.append(enemy)
 
 
