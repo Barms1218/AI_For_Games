@@ -29,15 +29,13 @@ while True:
         if pygame.event == pygame.QUIT:
             pygame.quit
             quit()
-    player.update(enemies, world_bounds)
     tick = pygame.time.get_ticks()
     delta_time = (tick - first_tick) / 1000
     first_tick = tick
-    player.update(enemies, delta_time)
+    player.update(enemies, world_bounds, delta_time)
     player.draw(screen)
     for enemy in enemies:
-        enemy.update(player, world_bounds)
-        enemy.update(player, delta_time)
+        enemy.update(player, world_bounds, delta_time)
         enemy.draw(screen)
     pygame.display.flip()
     clock.tick(Constants.FRAME_RATE)

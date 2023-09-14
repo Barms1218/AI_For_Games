@@ -14,16 +14,15 @@ class Player(Agent):
     def __str__(self):
         return f"Player size: {self.size}, player position: {self.pos}, player center: {self.center}, player velocity: {self.vel}"
 
-    def update(self, enemies, bounds):
+    def update(self, enemies, bounds, delta_time):
         if self.vel.x == 0 or super().collision_detection(self.target.rect):
             self.target = enemies[random.randint(0, len(enemies) - 1)]
         self.vel = self.target.pos - self.pos
-        # super().update_velocity(self.target_vector)
-        # applied_force = self.normal_velocity.scale(
-        #     Constants.PLAYER_FORCE_WEIGHT)
-        # applied_force = applied_force.normalize().scale(delta_time)
-        # self.target_vector = applied_force
-        # super().update(applied_force)
+        normal_velocity = super().update_velocity()
+        applied_force = self.vel.scale(
+             Constants.PLAYER_FORCE_WEIGHT)
+        applied_force = applied_force.normalize().scale(delta_time * self.speed)
+        self.vel = applied_force
         super().update(bounds)
 
     def draw(self, screen):

@@ -20,22 +20,27 @@ class Enemy(Agent):
         self.target_vector = Vector.zero()
         self.color = Constants.ENEMY_COLOR
         self.wander_point = Vector.zero()
-        self.fleeing = False
+        self.state = State.Wander
         self.wander_point = None
         self.center = self.calc_center()
 
     def __str__(self):
         return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Destination: {self.target_vector}, enemy center: {self.center}"
 
-    def update(self, player, bounds):
+    def update(self, player, bounds, delta_time):
+        behavior_weight = 0
         player_vector = self.pos - player.pos
         player_distance = player_vector.length()
 
         if self.is_player_close(player_distance):   
-            self.fleeing = True
+            self.state = State.Flee
             self.vel = player_vector
+            behavior_weight = Constants.ENEMY_FLEE_WEIGHT
         else:
-            self.fleeing = False
+            self.state = State.Wander
+
+            behavior_weight = Constants.ENEMY_WANDER_WEIGHT
+
             # get angle between -1 and 1
             angle = random.uniform(-1, 1)
 
@@ -52,13 +57,15 @@ class Enemy(Agent):
             wander_point += wander_direction
 
             self.vel = wander_point - self.pos
-            # wanderpoint += wanderdirection
-
+        #normal_velocity = super().update_velocity()
+        applied_force = self.vel.scale(behavior_weight)
+        applied_force = applied_force.normalize().scale(delta_time * self.speed)
+        self.vel = applied_force
         super().update(bounds)
 
     def draw(self, screen):
         line_color = (0, 0, 255)
-        if self.fleeing:
+        if self.state == State.Flee:
             line_color = (255, 0, 0)
         else:
             line_color = (0, 0, 255)

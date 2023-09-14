@@ -11,25 +11,26 @@ class Agent:
         self.speed = speed
         self.vel = Vector.zero()
         self.center = self.calc_center()
-        self.normal_velocity = Vector.zero()
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
         self.color = color
         self.boundary_radius = 20
 
     def update(self, bounds):
-        self.update_velocity()
 
         self.vel = self.vel.scale(self.speed)
 
         self.pos += self.vel
 
-        self.pos.x = max(0, min(self.pos.x, bounds.x - self.size))
-
-        self.pos.y = max(0, min(self.pos.y, bounds.y - self.size))
+        self.clamp(bounds)
 
         self.update_rect()
 
         self.center = self.calc_center()
+
+    def clamp(self, bounds):
+        self.pos.x = max(0, min(self.pos.x, bounds.x - self.size))
+
+        self.pos.y = max(0, min(self.pos.y, bounds.y - self.size))
 
     def draw(self, screen, line_color):
         end_pos = (self.center.x + self.vel.x * 25,
@@ -45,13 +46,7 @@ class Agent:
         return pygame.Rect.colliderect(self.rect, rect)
     
     def update_velocity(self):
-        self.vel = self.vel.normalize()
+        return self.vel.normalize()
     
     def update_rect(self):
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
-
-    def update_rect(self):
-        self.rect = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
-
-    def update_velocity(self, velocity):
-        self.normal_velocity = velocity.normalize()
