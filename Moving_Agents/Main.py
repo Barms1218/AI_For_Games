@@ -14,6 +14,7 @@ screen = pygame.display.set_mode(
 
 enemies = list()
 
+world_bounds = Vector(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT)
 player = Player(Vector(Constants.SCREEN_WIDTH * 0.75, Constants.SCREEN_HEIGHT * 0.75),
                 Constants.PLAYER_SIZE, Constants.PLAYER_SPEED)
 for i in range(10):
@@ -27,10 +28,10 @@ while True:
         if pygame.event == pygame.QUIT:
             pygame.quit
             quit()
-    player.update(enemies)
+    player.update(enemies, world_bounds)
     player.draw(screen)
     for enemy in enemies:
-        enemy.update(player)
+        enemy.update(player, world_bounds)
         enemy.draw(screen)
     pygame.display.flip()
     clock.tick(Constants.FRAME_RATE)

@@ -10,42 +10,52 @@ class Enemy(Agent):
     def __init__(self, position, size, speed):
         super().__init__(position, size, speed, Constants.ENEMY_COLOR)
         self.fleeing = False
-        self.target_vector = None
         self.wander_point = None
         self.center = self.calc_center()
 
     def __str__(self):
         return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Velocity: {self.vel}, enemy center: {self.center}"
 
-    def update(self, player):
-        self.target_vector = self.pos.__sub__(player.pos)
-        player_distance = self.pos.__sub__(player.pos).length()
+    def update(self, player, bounds):
+        player_vector = self.pos - player.pos
+        player_distance = player_vector.length()
 
-        if player_distance < 200:
+        if self.is_player_close(player_distance):   
             self.fleeing = True
-            super().update(self.target_vector)
+            self.vel = player_vector
         else:
-            # get angle between -1 and 1
-            theta = math.acos(random.randint(-1, 1))
-            # create wander direction with cos and sin of angle
-            wander_direction = Vector(math.cos(theta), math.sin(theta))
-            # if random number > 50 add 180
-
-            # wanderpoint = velocity + position
-            self.target_vector = self.vel + self.pos
-            # wanderpoint += wanderdirection
-            self.target_vector += wander_direction
             self.fleeing = False
-            self.center = self.calc_center()
-            super().update(self.target_vector)
+            # get angle between -1 and 1
+            angle = random.uniform(-1, 1)
+
+            angle = math.acos(angle)
+
+            if random.randint(0, 100) > 50:
+                angle += math.pi
+                
+            # create wander direction with cos and sin of angle
+            wander_direction = Vector(math.cos(angle), math.sin(angle))
+
+            wander_point = self.pos + self.vel
+
+            wander_point += wander_direction
+
+            self.vel = wander_point - self.pos
+            # wanderpoint += wanderdirection
+
+        super().update(bounds)
 
     def draw(self, screen):
         line_color = (0, 0, 255)
-        end_pos = (self.center.x - self.target_vector.x,
-                   self.center.y - self.target_vector.y)
         if self.fleeing:
             line_color = (255, 0, 0)
 
-        super().draw(screen, end_pos, line_color)
+        super().draw(screen, line_color)
+
+    def is_player_close(self, distance):
+        if distance < Constants.ENEMY_RANGE:
+            return True
+        else:
+            return False
 
 
