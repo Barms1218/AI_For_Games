@@ -13,6 +13,8 @@ screen = pygame.display.set_mode(
     (Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT))
 
 enemies = list()
+
+world_bounds = Vector(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT)
 first_tick = pygame.time.get_ticks()
 player = Player(Vector(Constants.SCREEN_WIDTH * 0.75, Constants.SCREEN_HEIGHT * 0.75),
                 Constants.PLAYER_SIZE, Constants.PLAYER_SPEED)
@@ -27,12 +29,14 @@ while True:
         if pygame.event == pygame.QUIT:
             pygame.quit
             quit()
+    player.update(enemies, world_bounds)
     tick = pygame.time.get_ticks()
     delta_time = (tick - first_tick) / 1000
     first_tick = tick
     player.update(enemies, delta_time)
     player.draw(screen)
     for enemy in enemies:
+        enemy.update(player, world_bounds)
         enemy.update(player, delta_time)
         enemy.draw(screen)
     pygame.display.flip()
