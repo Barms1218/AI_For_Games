@@ -19,6 +19,12 @@ class Player(Agent):
         if self.vel.x == 0 or super().collision_detection(self.target.rect):
             self.target = enemies[random.randint(0, len(enemies) - 1)]
         self.vel = self.target.pos - self.pos
+        # super().update_velocity(self.target_vector)
+        # applied_force = self.normal_velocity.scale(
+        #     Constants.PLAYER_FORCE_WEIGHT)
+        # applied_force = applied_force.normalize().scale(delta_time)
+        # self.target_vector = applied_force
+        # super().update(applied_force)
         super().update(bounds)
 
 
