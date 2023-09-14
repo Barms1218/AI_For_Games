@@ -25,7 +25,7 @@ class Enemy(Agent):
         self.center = self.calc_center()
 
     def __str__(self):
-        return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Destination: {self.target_vector}, enemy center: {self.center}"
+        return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Destination: {self.vel}, enemy center: {self.center}"
 
     def update(self, player, bounds, delta_time):
         behavior_weight = 0
@@ -33,11 +33,11 @@ class Enemy(Agent):
         player_distance = player_vector.length()
 
         if self.is_player_close(player_distance):   
-            self.state = State.Flee
+            self.change_state(State.Flee)
             self.vel = player_vector
             behavior_weight = Constants.ENEMY_FLEE_WEIGHT
         else:
-            self.state = State.Wander
+            self.change_state(State.Wander)
 
             behavior_weight = Constants.ENEMY_WANDER_WEIGHT
 
@@ -59,8 +59,8 @@ class Enemy(Agent):
             self.vel = wander_point - self.pos
         #normal_velocity = super().update_velocity()
         applied_force = self.vel.scale(behavior_weight)
-        applied_force = applied_force.normalize().scale(delta_time * self.speed)
-        self.vel = applied_force
+        normalized_force = applied_force.normalize().scale(self.speed)
+        self.vel = normalized_force
         super().update(bounds)
 
     def draw(self, screen):
@@ -73,9 +73,12 @@ class Enemy(Agent):
         super().draw(screen, line_color)
 
     def is_player_close(self, distance):
-        if distance < Constants.ENEMY_RANGE:
+        if distance <= Constants.ENEMY_RANGE:
             return True
         else:
             return False
+    def change_state(self, desired_state):
+        if self.state != desired_state:
+            self.state = desired_state
 
 

@@ -37,6 +37,7 @@ while True:
     for enemy in enemies:
         enemy.update(player, world_bounds, delta_time)
         enemy.draw(screen)
+    #print(enemies[0])
     pygame.display.flip()
     clock.tick(Constants.FRAME_RATE)
     screen.fill(Constants.SCREEN_COLOR)

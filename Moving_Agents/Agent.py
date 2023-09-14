@@ -2,6 +2,13 @@ import Constants
 import pygame
 import math
 from Vector import Vector
+from enum import Enum
+
+class Boundaries(Enum):
+    left = 0
+    top = 0
+    right = Constants.SCREEN_WIDTH
+    bottom = Constants.SCREEN_HEIGHT
 
 
 class Agent:
@@ -13,9 +20,31 @@ class Agent:
         self.center = self.calc_center()
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
         self.color = color
-        self.boundary_radius = 20
 
     def update(self, bounds):
+        boundary_vector = Vector.zero()
+        num_boundaries = 0
+        boundaries = list()
+        if self.pos.x - Constants.BOUNDARY_RADIUS <= 0:
+            boundaries.append(0)
+            num_boundaries += 1
+        elif self.pos.x + Constants.BOUNDARY_RADIUS >= Constants.SCREEN_WIDTH:
+            boundaries.append(Constants.SCREEN_WIDTH)
+            num_boundaries += 1
+        if self.pos.y - Constants.BOUNDARY_RADIUS <= 0:
+            boundaries.append(0) 
+            num_boundaries += 1
+        elif self.pos.y + Constants.BOUNDARY_RADIUS >= Constants.SCREEN_HEIGHT:
+            boundaries.append(Constants.SCREEN_HEIGHT) 
+            num_boundaries += 1
+
+        for i in range(len(boundaries)):
+            if i == 0 or i == Constants.SCREEN_WIDTH:
+                boundary_vector.x = i
+            if i == 0 or i == Constants.SCREEN_HEIGHT:
+                boundary_vector.y = i
+        
+        print(boundary_vector)
 
         self.vel = self.vel.scale(self.speed)
 
