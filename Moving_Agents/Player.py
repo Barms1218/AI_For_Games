@@ -18,14 +18,7 @@ class Player(Agent):
         if self.vel.x == 0 or super().collision_detection(self.target.rect):
             self.target = enemies[random.randint(0, len(enemies) - 1)]
         self.vel = self.target.pos - self.pos
-        normal_velocity = super().update_velocity()
-        applied_force = self.vel.scale(
-             Constants.PLAYER_FORCE_WEIGHT)
-        applied_force = applied_force.normalize().scale(delta_time * self.speed)
-        self.vel = applied_force
-        super().update(bounds)
+        super().update(bounds, delta_time)
 
     def draw(self, screen):
-        super().draw(screen, (255, 0 , 0))
-        # debug_line = pygame.draw.line(
-        #     screen, (255, 0, 0), (self.center.x, self.center.y), (self.target.center.x, self.target.center.y), 3)
+        super().draw(screen, (255, 0, 0))

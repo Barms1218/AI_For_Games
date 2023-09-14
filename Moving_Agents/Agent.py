@@ -4,6 +4,7 @@ import math
 from Vector import Vector
 from enum import Enum
 
+
 class Boundaries(Enum):
     left = 0
     top = 0
@@ -21,31 +22,44 @@ class Agent:
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
         self.color = color
 
-    def update(self, bounds):
+    def update(self, bounds, delta_time):
         boundary_vector = Vector.zero()
         num_boundaries = 0
+
         boundaries = list()
-        if self.pos.x - Constants.BOUNDARY_RADIUS <= 0:
-            boundaries.append(0)
+
+        if self.pos.x <= Constants.BOUNDARY_RADIUS:
+            distance = Constants.BOUNDARY_RADIUS - self.pos.x
+            boundaries.append(Vector(0, self.pos.y))
             num_boundaries += 1
-        elif self.pos.x + Constants.BOUNDARY_RADIUS >= Constants.SCREEN_WIDTH:
-            boundaries.append(Constants.SCREEN_WIDTH)
+        elif self.pos.x >= Constants.SCREEN_WIDTH - Constants.BOUNDARY_RADIUS - self.size:
+            distance = Constants.BOUNDARY_RADIUS - self.pos.x
+            boundaries.append(Vector(Constants.SCREEN_WIDTH, self.pos.y))
             num_boundaries += 1
-        if self.pos.y - Constants.BOUNDARY_RADIUS <= 0:
-            boundaries.append(0) 
+        if self.pos.y <= Constants.BOUNDARY_RADIUS:
+            distance = Constants.BOUNDARY_RADIUS - self.pos.x
+            boundaries.append(Vector(self.pos.x, 0))
             num_boundaries += 1
-        elif self.pos.y + Constants.BOUNDARY_RADIUS >= Constants.SCREEN_HEIGHT:
-            boundaries.append(Constants.SCREEN_HEIGHT) 
+        elif self.pos.y >= Constants.SCREEN_HEIGHT - Constants.BOUNDARY_RADIUS - self.size:
+            distance = self.pos.y + self.size - \
+                (Constants.SCREEN_HEIGHT - Constants.BOUNDARY_RADIUS)
+            boundaries.append(Vector(self.pos.x, Constants.SCREEN_HEIGHT))
             num_boundaries += 1
 
+        boundary_force = Vector.zero()
         for i in range(len(boundaries)):
-            if i == 0 or i == Constants.SCREEN_WIDTH:
-                boundary_vector.x = i
-            if i == 0 or i == Constants.SCREEN_HEIGHT:
-                boundary_vector.y = i
-        
-        print(boundary_vector)
+            boundary_force += boundaries[i].normalize()
 
+        boundary_force = self.pos - boundary_force
+        boundary_force.scale(boundary_force.length())
+        # self.vel += boundary_force
+
+        applied_force = self.vel.scale(
+            Constants.PLAYER_FORCE_WEIGHT)
+        applied_force = applied_force.normalize().scale(delta_time * self.speed)
+
+        self.vel = applied_force
+        self.vel += boundary_force
         self.vel = self.vel.scale(self.speed)
 
         self.pos += self.vel
@@ -73,9 +87,9 @@ class Agent:
 
     def collision_detection(self, rect):
         return pygame.Rect.colliderect(self.rect, rect)
-    
-    def update_velocity(self):
-        return self.vel.normalize()
-    
+
+    def update_velocity(self, velocity):
+        return velocity.normalize()
+
     def update_rect(self):
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)

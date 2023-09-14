@@ -32,7 +32,7 @@ class Enemy(Agent):
         player_vector = self.pos - player.pos
         player_distance = player_vector.length()
 
-        if self.is_player_close(player_distance):   
+        if self.is_player_close(player_distance):
             self.change_state(State.Flee)
             self.vel = player_vector
             behavior_weight = Constants.ENEMY_FLEE_WEIGHT
@@ -48,7 +48,7 @@ class Enemy(Agent):
 
             if random.randint(0, 100) > 50:
                 angle += math.pi
-                
+
             # create wander direction with cos and sin of angle
             wander_direction = Vector(math.cos(angle), math.sin(angle))
 
@@ -57,11 +57,7 @@ class Enemy(Agent):
             wander_point += wander_direction
 
             self.vel = wander_point - self.pos
-        #normal_velocity = super().update_velocity()
-        applied_force = self.vel.scale(behavior_weight)
-        normalized_force = applied_force.normalize().scale(self.speed)
-        self.vel = normalized_force
-        super().update(bounds)
+        super().update(bounds, delta_time)
 
     def draw(self, screen):
         line_color = (0, 0, 255)
@@ -77,8 +73,7 @@ class Enemy(Agent):
             return True
         else:
             return False
+
     def change_state(self, desired_state):
         if self.state != desired_state:
             self.state = desired_state
-
-
