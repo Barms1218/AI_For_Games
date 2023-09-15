@@ -14,13 +14,16 @@ screen = pygame.display.set_mode(
 
 enemies = list()
 
+sheep = pygame.image.load('sheep.png')
+dog = pygame.image.load('dog.png')
+
 world_bounds = Vector(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT)
 first_tick = pygame.time.get_ticks()
 player = Player(Vector(Constants.SCREEN_WIDTH * 0.75, Constants.SCREEN_HEIGHT * 0.75),
-                Constants.PLAYER_SIZE, Constants.PLAYER_SPEED)
+                Constants.PLAYER_SIZE, Constants.PLAYER_SPEED, dog)
 for i in range(10):
     enemy = Enemy(Vector(random.randint(100, 700), random.randint(100, 500)),
-                  Constants.ENEMY_SIZE, Constants.ENEMY_SPEED)
+                  Constants.ENEMY_SIZE, Constants.ENEMY_SPEED, sheep)
     enemies.append(enemy)
 
 

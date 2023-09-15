@@ -13,33 +13,30 @@ class State(Enum):
 
 
 class Enemy(Agent):
-    def __init__(self, position, size, speed):
-        super().__init__(position, size, speed, Constants.ENEMY_COLOR)
+    def __init__(self, position, size, speed, img):
+        super().__init__(position, size, speed, img)
         self.state = State.Wander
         # Calculated in wander and flee state, then used in force calculation
-        self.target_vector = Vector.zero()
-        self.color = Constants.ENEMY_COLOR
         self.wander_point = Vector.zero()
         self.state = State.Wander
         self.wander_point = None
-        self.center = self.calc_center()
+        self.img = img
 
     def __str__(self):
         return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Destination: {self.vel}, enemy center: {self.center}"
 
     def update(self, player, bounds, delta_time):
-        behavior_weight = 0
         player_vector = self.pos - player.pos
         player_distance = player_vector.length()
 
         if self.is_player_close(player_distance):
             self.change_state(State.Flee)
             self.vel = player_vector
-            behavior_weight = Constants.ENEMY_FLEE_WEIGHT
+            self.behavior_weight = Constants.ENEMY_FLEE_WEIGHT
         else:
             self.change_state(State.Wander)
 
-            behavior_weight = Constants.ENEMY_WANDER_WEIGHT
+            self.behavior_weight = Constants.ENEMY_WANDER_WEIGHT
 
             # get angle between -1 and 1
             angle = random.uniform(-1, 1)
@@ -56,7 +53,7 @@ class Enemy(Agent):
 
             wander_point += wander_direction
 
-            self.vel = wander_point - self.pos
+            self.vel = (wander_point - self.pos).scale(10)
         super().update(bounds, delta_time)
 
     def draw(self, screen):

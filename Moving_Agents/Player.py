@@ -6,10 +6,11 @@ from Agent import Agent
 
 
 class Player(Agent):
-    def __init__(self, position, size, speed):
-        super().__init__(position, size, speed, Constants.PLAYER_COLOR)
+    def __init__(self, position, size, speed, img):
+        super().__init__(position, size, speed, img)
         self.target = None
-        self.center = self.calc_center()
+        self.behavior_weight = Constants.PLAYER_FORCE_WEIGHT
+        self.img = img
 
     def __str__(self):
         return f"Player size: {self.size}, player position: {self.pos}, player center: {self.center}, player velocity: {self.vel}"
@@ -18,6 +19,7 @@ class Player(Agent):
         if self.vel.x == 0 or super().collision_detection(self.target.rect):
             self.target = enemies[random.randint(0, len(enemies) - 1)]
         self.vel = self.target.pos - self.pos
+        print(self.pos)
         super().update(bounds, delta_time)
 
     def draw(self, screen):

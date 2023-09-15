@@ -13,53 +13,45 @@ class Boundaries(Enum):
 
 
 class Agent:
-    def __init__(self, position, size, speed, color):
+    def __init__(self, position, size, speed, img):
         self.pos = position
         self.size = size
         self.speed = speed
         self.vel = Vector.zero()
-        self.center = self.calc_center()
+        self.behavior_weight = 0
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.size, self.size)
-        self.color = color
+        self.img = img
+        self.angle = 0
+        self.surf = pygame.transform.rotate(self.img, self.angle)
+        self.upper_left = Vector.zero()
+        self.center = self.calc_center()
 
     def update(self, bounds, delta_time):
         boundary_vector = Vector.zero()
-        num_boundaries = 0
-
-        boundaries = list()
+        distance = 0
+        boundaries = Vector.zero()
 
         if self.pos.x <= Constants.BOUNDARY_RADIUS:
             distance = Constants.BOUNDARY_RADIUS - self.pos.x
-            boundaries.append(Vector(0, self.pos.y))
-            num_boundaries += 1
+            boundaries += Vector(self.pos.x, distance).normalize()
         elif self.pos.x >= Constants.SCREEN_WIDTH - Constants.BOUNDARY_RADIUS - self.size:
-            distance = Constants.BOUNDARY_RADIUS - self.pos.x
-            boundaries.append(Vector(Constants.SCREEN_WIDTH, self.pos.y))
-            num_boundaries += 1
+            distance = abs(Constants.SCREEN_WIDTH - (self.pos.x + Constants.BOUNDARY_RADIUS))
+            boundaries += Vector(-self.pos.x, distance).normalize()
         if self.pos.y <= Constants.BOUNDARY_RADIUS:
-            distance = Constants.BOUNDARY_RADIUS - self.pos.x
-            boundaries.append(Vector(self.pos.x, 0))
-            num_boundaries += 1
+            distance = Constants.BOUNDARY_RADIUS - self.pos.y
+            boundaries += Vector(distance, self.pos.y).normalize()
         elif self.pos.y >= Constants.SCREEN_HEIGHT - Constants.BOUNDARY_RADIUS - self.size:
-            distance = self.pos.y + self.size - \
-                (Constants.SCREEN_HEIGHT - Constants.BOUNDARY_RADIUS)
-            boundaries.append(Vector(self.pos.x, Constants.SCREEN_HEIGHT))
-            num_boundaries += 1
+            distance = abs(Constants.SCREEN_HEIGHT - (self.pos.y + Constants.BOUNDARY_RADIUS))
+            boundaries += Vector(distance, -self.pos.y).normalize()
 
-        boundary_force = Vector.zero()
-        for i in range(len(boundaries)):
-            boundary_force += boundaries[i].normalize()
+        boundaries = boundaries.scale(Constants.BOUNDARY_WEIGHT)
 
-        boundary_force = self.pos - boundary_force
-        boundary_force.scale(boundary_force.length())
-        # self.vel += boundary_force
-
-        applied_force = self.vel.scale(
-            Constants.PLAYER_FORCE_WEIGHT)
+        applied_force = self.vel.scale(self.behavior_weight)
         applied_force = applied_force.normalize().scale(delta_time * self.speed)
 
+        applied_force += boundaries
+
         self.vel = applied_force
-        self.vel += boundary_force
         self.vel = self.vel.scale(self.speed)
 
         self.pos += self.vel
@@ -69,21 +61,31 @@ class Agent:
         self.update_rect()
 
         self.center = self.calc_center()
+        self.upper_left.x = self.center.x - self.surf.get_width() / 2
+        self.upper_left.y = self.center.y - self.surf.get_height() / 2
+        
 
     def clamp(self, bounds):
         self.pos.x = max(0, min(self.pos.x, bounds.x - self.size))
 
         self.pos.y = max(0, min(self.pos.y, bounds.y - self.size))
 
+    def calc_center(self):
+        return self.pos + (Vector.one().scale(self.size / 2))
+
     def draw(self, screen, line_color):
+        self.angle = math.atan2(self.vel.y, self.vel.x) 
+
+        self.angle = math.degrees(self.angle) - 45
+        self.surf = pygame.transform.rotate(self.img, self.angle)
         end_pos = (self.center.x + self.vel.x * 25,
                    self.center.y + self.vel.y * 25)
-        body = pygame.draw.rect(screen, self.color, self.rect)
+        screen.blit(self.surf, [self.upper_left.x, self.upper_left.y])
+        #body = pygame.draw.rect(screen, self.color, self.rect)
         debug_line = pygame.draw.line(
             screen, line_color, (self.center.x, self.center.y), end_pos, 3)
 
-    def calc_center(self):
-        return self.pos + (Vector.one().scale(self.size / 2))
+
 
     def collision_detection(self, rect):
         return pygame.Rect.colliderect(self.rect, rect)
