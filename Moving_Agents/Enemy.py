@@ -11,7 +11,8 @@ class State(Enum):
     Wander = 1
     Flee = 2
 
-
+WANDER_RING_DISTANCE = 50.0
+WANDER_RADIUS = 50.0
 class Enemy(Agent):
     def __init__(self, position, size, speed, img):
         super().__init__(position, size, speed, img)
@@ -21,6 +22,7 @@ class Enemy(Agent):
         self.state = State.Wander
         self.wander_point = None
         self.img = img
+        self.turn_speed = Constants.ENEMY_TURN_SPEED
 
     def __str__(self):
         return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Destination: {self.vel}, enemy center: {self.center}"
@@ -37,25 +39,16 @@ class Enemy(Agent):
             self.change_state(State.Wander)
 
             self.behavior_weight = Constants.ENEMY_WANDER_WEIGHT
+            rotation = math.radians(20)
+            direction = random.uniform(-rotation, rotation)
 
-            # get angle between -1 and 1
-            angle = random.uniform(-1, 1)
+            direction = Vector(self.vel.x * math.cos(direction) - self.vel.y * math.sin(direction),
+                               self.vel.x * math.sin(direction) + self.vel.y * math.cos(direction))
 
-            angle = math.acos(angle)
-
-            if random.randint(0, 100) > 50:
-                angle += math.pi
-
-            # create wander direction with cos and sin of angle
-            wander_direction = Vector(math.cos(angle), math.sin(angle))
-
-            wander_point = self.pos + self.vel
-
-            wander_point += wander_direction
-
-            self.vel = (wander_point - self.pos).scale(10)
+            self.vel = direction
         super().update(bounds, delta_time)
 
+    # Tells the agent draw what color to make the debug line.
     def draw(self, screen):
         line_color = (0, 0, 255)
         if self.state == State.Flee:
@@ -65,12 +58,21 @@ class Enemy(Agent):
 
         super().draw(screen, line_color)
 
+    '''
+    Return true if player agent is within range, otherwise false.
+    '''
     def is_player_close(self, distance):
         if distance <= Constants.ENEMY_RANGE:
             return True
         else:
             return False
 
+    '''
+    Makes the agent state be the state it should be
+    '''
     def change_state(self, desired_state):
         if self.state != desired_state:
             self.state = desired_state
+
+
+

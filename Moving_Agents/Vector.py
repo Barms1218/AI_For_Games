@@ -29,6 +29,24 @@ class Vector:
             return Vector(0, 0)
         else:
             return Vector(self.x / self.length(), self.y / self.length())
+        
+    def rotate(self, angle_degrees):
+    # Convert the angle to radians
+        angle_radians = math.radians(angle_degrees)
+
+        # Calculate the new x and y components after rotation
+        new_x = self.x * math.cos(angle_radians) - self.y * math.sin(angle_radians)
+        new_y = self.x * math.sin(angle_radians) + self.y * math.cos(angle_radians)
+
+        # Update the vector's components with the rotated values
+        self.x = new_x
+        self.y = new_y
+
+    def normalize_ip(self):
+        length = self.length()
+        if length != 0:
+            self.x /= length
+            self.y /= length
 
     def zero():
         return Vector(0.0, 0.0)
