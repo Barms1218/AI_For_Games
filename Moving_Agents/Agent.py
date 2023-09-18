@@ -5,7 +5,6 @@ from Vector import Vector
 from enum import Enum
 
 
-
 class Agent:
     def __init__(self, position, size, speed, img):
         self.pos = position
@@ -20,20 +19,13 @@ class Agent:
         self.surf = pygame.transform.rotate(self.img, self.angle)
         self.upper_left = Vector.zero()
         self.center = self.calc_center()
+        self.applied_force = Vector.zero()
+        self.boundary_force = Vector.zero()
 
-    def update(self, bounds, delta_time):
-        distance = 0
-        boundaries = self.check_boundaries()
-        #self.vel = self.update_velocity(self.vel)
-        applied_force = self.vel.scale(self.behavior_weight)
-        applied_force = applied_force.normalize().scale(delta_time * self.speed)
+    def update(self, bounds):
 
-        applied_force += boundaries
-        self.vel = self.update_direction(self.vel, applied_force, self.turn_speed)
-        #self.vel = applied_force
-        self.vel = self.vel.scale(self.speed)
+        self.vel = self.update_direction(self.vel.normalize(), self.applied_force.normalize(), self.turn_speed)
 
-        
         self.pos += self.vel
 
         self.clamp(bounds)
@@ -41,8 +33,10 @@ class Agent:
         self.update_rect()
 
         self.center = self.calc_center()
+        
         self.upper_left.x = self.center.x - self.surf.get_width() / 2
         self.upper_left.y = self.center.y - self.surf.get_height() / 2
+
 
     # Compares agent position with boundaries of the screen and creates a vector
     # That increases in strength as the agent gets closer and/or gets near more than
@@ -77,20 +71,20 @@ class Agent:
         return self.pos + (Vector.one().scale(self.size / 2))
 
     # Draws the agent, its debug line, and its image
-    def draw(self, screen, line_color):
+    def draw(self, screen):
         self.angle = math.atan2(self.vel.y, self.vel.x) 
 
         self.angle = math.degrees(self.angle) + 90
         self.surf = pygame.transform.rotate(self.img, -self.angle)
-        end_pos = (self.center.x + self.vel.x * 10,
-                   self.center.y + self.vel.y * 10)
+        end_pos = (self.center.x + self.vel.x * 25,
+                   self.center.y + self.vel.y * 25)
         screen.blit(self.surf, [self.upper_left.x, self.upper_left.y])
 
         bound_rect = self.surf.get_bounding_rect()
         bound_rect.move_ip(self.upper_left.x, self.upper_left.y)
         body = pygame.draw.rect(screen, (0, 0, 0), bound_rect, 1)
         debug_line = pygame.draw.line(
-            screen, line_color, (self.center.x, self.center.y), end_pos, 3)
+            screen, (0, 255, 0), (self.center.x, self.center.y), end_pos, 3)
 
 
     # Checks for a collision between the agent and another rectangle
@@ -116,15 +110,15 @@ class Agent:
             current_direction = target_direction
         else:
             # Normalize the difference vector
-            diff_vector.normalize_ip()
+            diff_vector = diff_vector.normalize()
 
             # Scale it by the turning speed
-            diff_vector.scale(turning_speed)
+            diff_vector = diff_vector.scale(turning_speed)
 
             # Add it to the current direction
             current_direction += diff_vector
 
             # Normalize the current direction
-            current_direction.normalize_ip()
+            current_direction = current_direction.normalize()
 
         return current_direction

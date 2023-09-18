@@ -1,8 +1,8 @@
 import pygame
 from Vector import Vector
 import Constants
-from Player import Player
-from Enemy import Enemy
+from Dog import Dog
+from Sheep import Sheep
 import random
 
 pygame.init()
@@ -12,19 +12,19 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode(
     (Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT))
 
-enemies = list()
+flock = list()
 
-sheep = pygame.image.load('sheep.png')
-dog = pygame.image.load('dog.png')
+sheep_img = pygame.image.load('sheep.png')
+dog_img = pygame.image.load('dog.png')
 
 world_bounds = Vector(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT)
 first_tick = pygame.time.get_ticks()
-player = Player(Vector(Constants.SCREEN_WIDTH * 0.75, Constants.SCREEN_HEIGHT * 0.75),
-                Constants.PLAYER_SIZE, Constants.PLAYER_SPEED, dog)
-for i in range(10):
-    enemy = Enemy(Vector(random.randint(100, 700), random.randint(100, 500)),
-                  Constants.ENEMY_SIZE, Constants.ENEMY_SPEED, sheep)
-    enemies.append(enemy)
+dog = Dog(Vector(Constants.SCREEN_WIDTH * 0.5, Constants.SCREEN_HEIGHT * 0.5),
+                Constants.PLAYER_SIZE, Constants.PLAYER_SPEED, dog_img)
+for i in range(100):
+    sheep = Sheep(Vector(random.uniform(100, Constants.SCREEN_WIDTH), random.uniform(100, Constants.SCREEN_HEIGHT)),
+                  Constants.ENEMY_SIZE, Constants.ENEMY_SPEED, sheep_img)
+    flock.append(sheep)
 
 
 def handleDebugging():        
@@ -92,11 +92,12 @@ while True:
     tick = pygame.time.get_ticks()
     delta_time = (tick - first_tick) / 1000
     first_tick = tick
-    player.update(enemies, world_bounds, delta_time)
-    player.draw(screen)
-    for enemy in enemies:
-        enemy.update(player, world_bounds, delta_time)
-        enemy.draw(screen)
+    dog.update(flock, world_bounds, delta_time)
+    dog.draw(screen)
+    for sheep in flock:
+        sheep.update(flock, dog, world_bounds, delta_time)
+        sheep.draw(screen)
+
     pygame.display.flip()
     clock.tick(Constants.FRAME_RATE)
     screen.fill(Constants.SCREEN_COLOR)
