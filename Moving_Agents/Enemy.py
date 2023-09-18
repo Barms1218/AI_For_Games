@@ -35,17 +35,7 @@ class Enemy(Agent):
             self.change_state(State.Flee)
             self.vel = player_vector
             self.behavior_weight = Constants.ENEMY_FLEE_WEIGHT
-        else:
-            self.change_state(State.Wander)
 
-            self.behavior_weight = Constants.ENEMY_WANDER_WEIGHT
-            rotation = math.radians(20)
-            direction = random.uniform(-rotation, rotation)
-
-            direction = Vector(self.vel.x * math.cos(direction) - self.vel.y * math.sin(direction),
-                               self.vel.x * math.sin(direction) + self.vel.y * math.cos(direction))
-
-            self.vel = direction
         super().update(bounds, delta_time)
 
     # Tells the agent draw what color to make the debug line.
