@@ -24,11 +24,22 @@ class Sheep(Agent):
         self.img = img
         self.turn_speed = Constants.ENEMY_TURN_SPEED
         self.player_vector = Vector.zero()
+        self.neighbors = list()
+        self.neighbor_count = 0
 
     def __str__(self):
         return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Destination: {self.vel}, enemy center: {self.center}"
 
     def update(self, flock, player, bounds, delta_time):
+
+        for sheep in flock:
+            if sheep is not self and self.sheep_is_neighbor(sheep, Constants.NEIGHBOR_RADIUS):
+                self.neighbors.append(sheep)
+                self.neighbor_count += 1
+            elif sheep in self.neighbors and not self.sheep_is_neighbor(sheep, Constants.NEIGHBOR_RADIUS):
+                    self.neighbors.remove(sheep)
+                    self.neighbor_count -= 1
+
         # Reset movement vector every frame
         self.applied_force = Vector.zero()
 
@@ -36,9 +47,9 @@ class Sheep(Agent):
         self.player_vector = self.pos - player.pos
         player_distance = self.player_vector.length()
 
-        alignment = self.compute_alignment(flock)
-        cohesion = self.compute_cohesion(flock)
-        separation = self.compute_separation(flock)
+        alignment = self.compute_alignment(self.neighbors)
+        cohesion = self.compute_cohesion(self.neighbors)
+        separation = self.compute_separation(self.neighbors)
 
         if self.is_player_close(player_distance):
             self.change_state(State.Flee)
@@ -48,7 +59,6 @@ class Sheep(Agent):
             self.change_state(State.Wander)
         
         self.boundary_force = super().check_boundaries()
-        print(self.state)
         
         self.applied_force += self.boundary_force + alignment.scale(Constants.ALIGNMENT_WEIGHT) + cohesion.scale(Constants.COHESION_WEIGHT) + separation.scale(Constants.SEPARATION_WEIGHT)
         self.applied_force = self.applied_force.normalize().scale(delta_time * self.speed)
@@ -61,33 +71,20 @@ class Sheep(Agent):
             end_pos = (self.player_vector.x * -1, self.player_vector.y * -1)
             debug_line = pygame.draw.line(
                 screen, (255, 0, 0), (self.center.x, self.center.y), end_pos, 3)
+        
+        for sheep in self.neighbors:
+            pygame.draw.line(screen, (0, 0, 255), (self.center.x, self.center.y), 
+                             (self.center.x + sheep.center.x * 20, self.center.y + sheep.center.y * 20), 1)
         super().draw(screen)
 
-    '''
-    Return true if player agent is within range, otherwise false.
-    '''
-    def is_player_close(self, distance):
-        if distance <= Constants.ENEMY_RANGE:
-            return True
-        else:
-            return False
 
-    '''
-    Makes the agent state be the state it should be
-    '''
-    def change_state(self, desired_state):
-        if self.state != desired_state:
-            self.state = desired_state
-
+    #region Flocking Methods
     def compute_alignment(self, flock):
         neighbor_count = 0
         alignment_vector = Vector.zero()
 
         for sheep in flock:
-            if sheep is not self:
-                if (self.pos - sheep.pos).length() < 100:
-                    alignment_vector += sheep.vel
-                    neighbor_count += 1
+            alignment_vector += sheep.vel
 
         if neighbor_count == 0:
             return alignment_vector
@@ -102,10 +99,7 @@ class Sheep(Agent):
         cohesion_vector = Vector.zero()
 
         for sheep in flock:
-            if sheep is not self:
-                if (self.pos - sheep.pos).length() < 100:
-                    cohesion_vector += sheep.pos
-                    neighbor_count += 1
+            cohesion_vector += sheep.pos
 
         if neighbor_count == 0:
             return cohesion_vector
@@ -123,10 +117,7 @@ class Sheep(Agent):
         separation_vector = Vector.zero()
 
         for sheep in flock:
-            if sheep is not self:
-                if (self.pos - sheep.pos).length() < 100:
-                    separation_vector += (sheep.pos - self.pos)
-                    neighbor_count += 1
+            separation_vector += (sheep.pos - self.pos)
 
         if neighbor_count == 0:
             return separation_vector
@@ -136,8 +127,35 @@ class Sheep(Agent):
 
         separation_vector = separation_vector.scale(-1)
 
-        return separation_vector.normalize()       
+        return separation_vector.normalize()  
 
+    #endregion
+
+
+    #region Detection Methods
+    '''
+    Return true if player agent is within range, otherwise false.
+    '''
+    def is_player_close(self, distance):
+        if distance <= Constants.ENEMY_RANGE:
+            return True
+        else:
+            return False
+        
+    def sheep_is_neighbor(self, sheep, range):
+        if (self.pos - sheep.pos).length() < range:
+            return True
+        else:
+            return False
+    #endregion
+
+
+    '''
+    Makes the agent state be the state it should be
+    '''
+    def change_state(self, desired_state):
+        if self.state != desired_state:
+            self.state = desired_state
         
         
 
