@@ -24,7 +24,7 @@ class Agent:
 
     def update(self, bounds):
 
-        self.vel = self.update_direction(self.vel.normalize(), self.applied_force.normalize(), self.turn_speed)
+        self.vel = self.update_direction(self.vel, self.applied_force, self.turn_speed)
 
         self.pos += self.vel
 
@@ -72,17 +72,19 @@ class Agent:
 
     # Draws the agent, its debug line, and its image
     def draw(self, screen):
+        # Draws the agent image at the appropriate rotation
         self.angle = math.atan2(self.vel.y, self.vel.x) 
-
         self.angle = math.degrees(self.angle) + 90
         self.surf = pygame.transform.rotate(self.img, -self.angle)
-        end_pos = (self.center.x + self.vel.x * 25,
-                   self.center.y + self.vel.y * 25)
         screen.blit(self.surf, [self.upper_left.x, self.upper_left.y])
 
         bound_rect = self.surf.get_bounding_rect()
         bound_rect.move_ip(self.upper_left.x, self.upper_left.y)
         body = pygame.draw.rect(screen, (0, 0, 0), bound_rect, 1)
+
+        # Velocity line for all agents
+        end_pos = (self.center.x + self.vel.x * 25,
+                   self.center.y + self.vel.y * 25)
         debug_line = pygame.draw.line(
             screen, (0, 255, 0), (self.center.x, self.center.y), end_pos, 3)
 

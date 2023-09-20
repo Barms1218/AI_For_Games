@@ -26,12 +26,13 @@ class Sheep(Agent):
         self.player_vector = Vector.zero()
         self.neighbors = list()
         self.neighbor_count = 0
+        self.player = None
 
     def __str__(self):
         return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Destination: {self.vel}, enemy center: {self.center}"
 
     def update(self, flock, player, bounds, delta_time):
-
+        self.player = player
         for sheep in flock:
             if sheep is not self and self.sheep_is_neighbor(sheep, Constants.NEIGHBOR_RADIUS):
                 self.neighbors.append(sheep)
@@ -39,8 +40,9 @@ class Sheep(Agent):
             elif sheep in self.neighbors and not self.sheep_is_neighbor(sheep, Constants.NEIGHBOR_RADIUS):
                     self.neighbors.remove(sheep)
                     self.neighbor_count -= 1
-
-        # Reset movement vector every frame
+        
+        # Reset force vector every frame
+        dog_force = Vector.zero()
         self.applied_force = Vector.zero()
 
         # Know where the player is
@@ -54,13 +56,17 @@ class Sheep(Agent):
         if self.is_player_close(player_distance):
             self.change_state(State.Flee)
             self.player_vector = self.player_vector.normalize()
-            self.applied_force += self.player_vector.scale(Constants.ENEMY_FLEE_WEIGHT)
+            dog_force = self.player_vector
         else:
             self.change_state(State.Wander)
         
         self.boundary_force = super().check_boundaries()
         
-        self.applied_force += self.boundary_force + alignment.scale(Constants.ALIGNMENT_WEIGHT) + cohesion.scale(Constants.COHESION_WEIGHT) + separation.scale(Constants.SEPARATION_WEIGHT)
+        self.applied_force += (alignment.scale(Constants.ALIGNMENT_WEIGHT)) + \
+            cohesion.scale(Constants.COHESION_WEIGHT) + \
+                separation.scale(Constants.SEPARATION_WEIGHT) + \
+                    dog_force.scale(Constants.DOG_WEIGHT) + \
+                        self.boundary_force.scale(Constants.BOUNDARY_WEIGHT)
         self.applied_force = self.applied_force.normalize().scale(delta_time * self.speed)
         
         super().update(bounds)
@@ -68,13 +74,11 @@ class Sheep(Agent):
     # Tells the agent draw what color to make the debug line.
     def draw(self, screen):
         if self.state == State.Flee:
-            end_pos = (self.player_vector.x * -1, self.player_vector.y * -1)
-            debug_line = pygame.draw.line(
-                screen, (255, 0, 0), (self.center.x, self.center.y), end_pos, 3)
-        
+            pygame.draw.line(screen, (255, 0, 0), (self.center.x, self.center.y),
+                             (self.player.center.x, self.player.center.y), 1)
         for sheep in self.neighbors:
             pygame.draw.line(screen, (0, 0, 255), (self.center.x, self.center.y), 
-                             (self.center.x + sheep.center.x * 20, self.center.y + sheep.center.y * 20), 1)
+                             (sheep.center.x, sheep.center.y), 1)
         super().draw(screen)
 
 
@@ -86,11 +90,11 @@ class Sheep(Agent):
         for sheep in flock:
             alignment_vector += sheep.vel
 
-        if neighbor_count == 0:
+        if self.neighbor_count == 0:
             return alignment_vector
         
-        alignment_vector.x /= neighbor_count
-        alignment_vector.y /= neighbor_count
+        alignment_vector.x /= self.neighbor_count
+        alignment_vector.y /= self.neighbor_count
 
         return alignment_vector.normalize()
     
@@ -101,11 +105,11 @@ class Sheep(Agent):
         for sheep in flock:
             cohesion_vector += sheep.pos
 
-        if neighbor_count == 0:
+        if self.neighbor_count == 0:
             return cohesion_vector
         
-        cohesion_vector.x /= neighbor_count
-        cohesion_vector.y /= neighbor_count
+        cohesion_vector.x /= self.neighbor_count
+        cohesion_vector.y /= self.neighbor_count
 
         cohesion_vector.x -= self.pos.x
         cohesion_vector.y -= self.pos.y
@@ -119,11 +123,11 @@ class Sheep(Agent):
         for sheep in flock:
             separation_vector += (sheep.pos - self.pos)
 
-        if neighbor_count == 0:
+        if self.neighbor_count == 0:
             return separation_vector
         
-        separation_vector.x /= neighbor_count
-        separation_vector.y /= neighbor_count
+        separation_vector.x /= self.neighbor_count
+        separation_vector.y /= self.neighbor_count
 
         separation_vector = separation_vector.scale(-1)
 
