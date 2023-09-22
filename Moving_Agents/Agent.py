@@ -52,13 +52,17 @@ class Agent:
             boundaries.x += (r - x)
         elif x >= w - r - size:
             boundaries.x += (w - r - size - x)
+        else:
+            boundaries.x = 0
             
         if y <= r:
             boundaries.y += (r - y)
         elif y >= h - r - size:
             boundaries.y += (h - r - size - y)
+        else:
+            boundaries.y = 0
         
-        return boundaries.scale(Constants.BOUNDARY_WEIGHT)
+        return boundaries
         
     # Makes the agent stay within the borders of the screen
     def clamp(self, bounds):
@@ -80,12 +84,14 @@ class Agent:
 
         bound_rect = self.surf.get_bounding_rect()
         bound_rect.move_ip(self.upper_left.x, self.upper_left.y)
-        body = pygame.draw.rect(screen, (0, 0, 0), bound_rect, 1)
+        if Constants.DEBUG_BOUNDING_RECTS:
+            body = pygame.draw.rect(screen, (0, 0, 0), bound_rect, 1)
 
         # Velocity line for all agents
         end_pos = (self.center.x + self.vel.x * 25,
                    self.center.y + self.vel.y * 25)
-        debug_line = pygame.draw.line(
+        if Constants.DEBUG_VELOCITY:
+            debug_line = pygame.draw.line(
             screen, (0, 255, 0), (self.center.x, self.center.y), end_pos, 3)
 
 

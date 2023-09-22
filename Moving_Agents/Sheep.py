@@ -32,7 +32,9 @@ class Sheep(Agent):
         return f"Enemy size: {self.size}, enemy position: {self.pos}, Enemy Destination: {self.vel}, enemy center: {self.center}"
 
     def update(self, flock, player, bounds, delta_time):
-        self.player = player
+        self.player = player # Helps to keep track of player in between methods
+
+        # Add sheep to the neighors list or remove them if they're not close enough
         for sheep in flock:
             if sheep is not self and self.sheep_is_neighbor(sheep, Constants.NEIGHBOR_RADIUS):
                 self.neighbors.append(sheep)
@@ -49,10 +51,13 @@ class Sheep(Agent):
         self.player_vector = self.pos - player.pos
         player_distance = self.player_vector.length()
 
+        # Flocking forces method calls
         alignment = self.compute_alignment(self.neighbors)
         cohesion = self.compute_cohesion(self.neighbors)
         separation = self.compute_separation(self.neighbors)
 
+
+        # Check for distance to player and react accordingly
         if self.is_player_close(player_distance):
             self.change_state(State.Flee)
             self.player_vector = self.player_vector.normalize()
@@ -60,24 +65,28 @@ class Sheep(Agent):
         else:
             self.change_state(State.Wander)
         
+        # Check to see if agent is near boundaries
         self.boundary_force = super().check_boundaries()
         
-        self.applied_force += (alignment.scale(Constants.ALIGNMENT_WEIGHT)) + \
-            cohesion.scale(Constants.COHESION_WEIGHT) + \
-                separation.scale(Constants.SEPARATION_WEIGHT) + \
-                    dog_force.scale(Constants.DOG_WEIGHT) + \
-                        self.boundary_force.scale(Constants.BOUNDARY_WEIGHT)
+        # Calculate all forces on the sheep agent
+        self.applied_force += alignment.scale(Constants.ALIGNMENT_WEIGHT * Constants.ENABLE_ALIGNMENT) + \
+            cohesion.scale(Constants.COHESION_WEIGHT * Constants.ENABLE_COHESION) + \
+                separation.scale(Constants.SEPARATION_WEIGHT * Constants.ENABLE_SEPARATION) + \
+                    dog_force.scale(Constants.DOG_WEIGHT * Constants.ENABLE_DOG) + \
+                        self.boundary_force.scale(Constants.BOUNDARY_WEIGHT * Constants.ENABLE_BOUNDARIES)
         self.applied_force = self.applied_force.normalize().scale(delta_time * self.speed)
         
         super().update(bounds)
 
     # Tells the agent draw what color to make the debug line.
     def draw(self, screen):
-        if self.state == State.Flee:
+        if Constants.DEBUG_DOG_INFLUENCE == True and self.state == State.Flee:
             pygame.draw.line(screen, (255, 0, 0), (self.center.x, self.center.y),
                              (self.player.center.x, self.player.center.y), 1)
-        for sheep in self.neighbors:
-            pygame.draw.line(screen, (0, 0, 255), (self.center.x, self.center.y), 
+
+        if Constants.DEBUG_NEIGHBORS:
+            for sheep in self.neighbors:
+                pygame.draw.line(screen, (0, 0, 255), (self.center.x, self.center.y), 
                              (sheep.center.x, sheep.center.y), 1)
         super().draw(screen)
 
