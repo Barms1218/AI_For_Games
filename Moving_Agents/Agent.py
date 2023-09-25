@@ -21,6 +21,7 @@ class Agent:
         self.center = self.calc_center()
         self.applied_force = Vector.zero()
         self.boundary_force = Vector.zero()
+        self.close_to_boundary = False
 
     def update(self, bounds):
 
@@ -50,18 +51,25 @@ class Agent:
         
         if x <= r:
             boundaries.x += (r - x)
+            self.close_to_boundary = True
         elif x >= w - r - size:
             boundaries.x += (w - r - size - x)
+            self.close_to_boundary = True
         else:
             boundaries.x = 0
             
         if y <= r:
             boundaries.y += (r - y)
+            self.close_to_boundary = True
         elif y >= h - r - size:
             boundaries.y += (h - r - size - y)
+            self.close_to_boundary = True
         else:
             boundaries.y = 0
         
+        if boundaries.x == 0 and boundaries.y == 0:
+            self.close_to_boundary = False
+
         return boundaries
         
     # Makes the agent stay within the borders of the screen
@@ -93,6 +101,10 @@ class Agent:
         if Constants.DEBUG_VELOCITY:
             debug_line = pygame.draw.line(
             screen, (0, 255, 0), (self.center.x, self.center.y), end_pos, 3)
+
+        if self.close_to_boundary and Constants.DEBUG_BOUNDARIES:
+            pygame.draw.line(screen, (255, 0, 255), (self.center.x, self.center.y), (self.center.x - self.boundary_force.x, self.center.y - self.boundary_force.y), 2)
+
 
 
     # Checks for a collision between the agent and another rectangle
