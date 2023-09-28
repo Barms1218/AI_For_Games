@@ -188,9 +188,6 @@ class Graph():
 					if new_cost < neighbor.costFromStart:
 						neighbor.costFromStart = new_cost
 						neighbor.backNode = currNode
-				
-			if neighbor == end_node:
-				return self.buildPath(neighbor)
 
 				
 		# No path found
@@ -200,9 +197,34 @@ class Graph():
 		""" A Star Search """
 		print("A_STAR")
 		self.reset()
+		start_node = self.getNodeFromPoint(start)
+		end_node = self.getNodeFromPoint(end)
 
-		# TODO: Implement A Star Search
+		start_node.cost = 0
+		priority_queue = [start_node]
+		visited = {start_node}
 
+		while priority_queue:
+			priority_queue.sort(key=lambda node:node.cost)
+			currNode = priority_queue.pop(0)
+			currNode.isExplored = True
+
+			if currNode == end_node:
+				return self.buildPath(end_node)
+
+			for neighbor in currNode.neighbors:
+				neighbor.costFromStart = 0
+				neighbor.costToEnd = self.calculateHeuristic(neighbor, end_node) + self.calculate_cost(neighbor, end_node)
+				new_cost = neighbor.costFromStart + neighbor.costToEnd
+				if neighbor not in visited or new_cost < neighbor.cost:
+					
+					neighbor.cost = new_cost
+					neighbor.backNode = currNode
+					
+					if not neighbor.isVisited:
+						neighbor.isVisited = True
+						visited.add(neighbor)
+						priority_queue.append(neighbor)
 		# Return empty path indicating no path was found
 		return []
 
@@ -265,4 +287,4 @@ class Graph():
 
 	def calculateHeuristic(self, node, goal):
         # Implement your heuristic function here, e.g., Manhattan distance
-		return abs((node.center - goal.center).length())
+		return Vector(node.x - goal.x, node.y - goal.y).length()
