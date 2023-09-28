@@ -2,7 +2,6 @@ import Constants
 import Node
 import pygame
 import Vector
-
 from pygame import *
 from Vector import *
 from Node import *
@@ -108,23 +107,93 @@ class Graph():
 		return path
 
 	def findPath_Breadth(self, start, end):
-		""" Breadth Search """
+		""" Breadth-first Search """
 		print("BREADTH")
 		self.reset()
 
-		# TODO: Implement Breadth-first Search
+		# Initialize a queue for BFS
+		startNode = (self.getNodeFromPoint(start))
+		startNode.isStart = True
+		queue = [startNode]
+		visited = {startNode}
+		endNode = self.getNodeFromPoint(end)
+		endNode.isEnd = True
+		start.isVisited = True
 
-		# Return empty path indicating no path was found
+		if startNode == endNode:
+			return self.buildPath(startNode)
+		
+
+		# Continue BFS until the queue is empty
+		while queue:
+			currentNode = queue.pop(0)
+			currentNode.isExplored = True
+
+			if currentNode == endNode:
+				# Path found, reconstruct and return it
+				return self.buildPath(endNode)
+
+			# Explore neighbors
+			for neighbor in currentNode.neighbors:
+				if neighbor not in visited:
+					visited.add(neighbor)
+					queue.append(neighbor)
+					neighbor.isVisited = True
+					neighbor.backNode = currentNode
+
+
+			if currentNode.neighbors == endNode:
+				return self.buildPath(endNode)
+			
+		# No path found
 		return []
+
 
 	def findPath_Djikstra(self, start, end):
 		""" Djikstra's Search """
+		# Reset the graph and initialize the starting node
 		print("DJIKSTRA")
 		self.reset()
-
-		# TODO: Implement Djikstra's Search
+		start_node = self.getNodeFromPoint(start)
+		end_node = self.getNodeFromPoint(end)
 		
-		# Return empty path indicating no path was found
+		end_node.isEnd = True
+		start_node.isVisted = True
+		start_node.isStart = True
+		start_node.costFromStart = 0
+		priority_queue = [start_node]
+
+		visited = {start_node}
+
+		while priority_queue:
+			priority_queue.sort(key=lambda node: node.costFromStart)
+			currNode = priority_queue.pop(0)
+			currNode.isExplored = True
+
+			if currNode == end_node:
+				return self.buildPath(currNode)
+			
+			for neighbor in currNode.neighbors:
+				move_cost = self.calculate_cost(currNode, neighbor)
+				cost_to_end = 0
+				new_cost = currNode.costFromStart + move_cost + cost_to_end
+				if neighbor not in visited:
+					neighbor.isVisted = True
+					visited.add(neighbor)
+					neighbor.costFromStart = new_cost
+
+					neighbor.backNode = currNode
+					priority_queue.append(neighbor)
+				elif neighbor in visited:
+					if new_cost < neighbor.costFromStart:
+						neighbor.costFromStart = new_cost
+						neighbor.backNode = currNode
+				
+			if neighbor == end_node:
+				return self.buildPath(neighbor)
+
+				
+		# No path found
 		return []
 
 	def findPath_AStar(self, start, end):
@@ -133,22 +202,67 @@ class Graph():
 		self.reset()
 
 		# TODO: Implement A Star Search
-		
+
 		# Return empty path indicating no path was found
 		return []
 
 	def findPath_BestFirst(self, start, end):
-		""" Best First Search """
+		"""Best First Search"""
 		print("BEST_FIRST")
 		self.reset()
+		start_node = self.getNodeFromPoint(start)
+		end_node = self.getNodeFromPoint(end)
 
-		# TODO: Implement Best First Search
-		
-		# Return empty path indicating no path was found
+		start_node.cost = 0
+		priority_queue = [start_node]
+		visited = {start_node}
+
+		while priority_queue:
+			priority_queue.sort(key=lambda node:node.cost)
+			currNode = priority_queue.pop(0)
+			currNode.isExplored = True
+
+			if currNode == end_node:
+				return self.buildPath(end_node)
+
+			for neighbor in currNode.neighbors:
+				neighbor.costFromStart = 0
+				neighbor.costToEnd = self.calculateHeuristic(neighbor, end_node)
+				new_cost = neighbor.costFromStart + neighbor.costToEnd
+				if neighbor not in visited or new_cost < neighbor.cost:
+					
+					neighbor.cost = new_cost
+					neighbor.backNode = currNode
+					
+					if not neighbor.isVisited:
+						neighbor.isVisited = True
+						visited.add(neighbor)
+						priority_queue.append(neighbor)
+
+
+
+        # No path found
 		return []
+
 
 	def draw(self, screen):
 		""" Draw the graph """
 		for i in range(self.gridHeight):
 			for j in range(self.gridWidth):
 				self.nodes[i][j].draw(screen)
+
+	# Calculcate the cost to move cardinally vs diagonally
+	def calculate_cost(self, current_node, next_node):
+		target_x = abs(current_node.x - next_node.x)
+		target_y = abs(current_node.y - next_node.y)
+
+		# Node is in a diagonal direction from current node
+		if target_x == 1 and target_y == 1:
+			return 2
+		
+		# node is in a cardinal direction
+		return 1
+
+	def calculateHeuristic(self, node, goal):
+        # Implement your heuristic function here, e.g., Manhattan distance
+		return abs((node.center - goal.center).length())

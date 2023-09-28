@@ -102,6 +102,8 @@ def buildObstacles(graph, pen):
 def handleEvents():		
 	'''Handle the Debugging for Forces and lines'''
 	events = pygame.event.get()
+	global hasQuit
+	
 	for event in events:
 		# Handle the quit event
 		if event.type == pygame.QUIT \

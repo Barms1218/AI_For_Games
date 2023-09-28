@@ -75,3 +75,6 @@ class Node():
 		if Constants.DEBUG_NEIGHBOR_LINES:
 			for node in self.neighbors:
 				pygame.draw.line(screen, (0, 255, 0), (self.center.x, self.center.y), (node.center.x, node.center.y))
+
+	
+	
