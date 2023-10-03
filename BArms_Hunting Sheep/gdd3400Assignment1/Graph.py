@@ -148,7 +148,6 @@ class Graph():
 		# No path found
 		return []
 
-
 	def findPath_Djikstra(self, start, end):
 		""" Djikstra's Search """
 		# Reset the graph and initialize the starting node
@@ -156,37 +155,35 @@ class Graph():
 		self.reset()
 		start_node = self.getNodeFromPoint(start)
 		end_node = self.getNodeFromPoint(end)
-		
-		end_node.isEnd = True
-		start_node.isVisted = True
-		start_node.isStart = True
+
+		start_node.cost = 0
 		start_node.costFromStart = 0
 		priority_queue = [start_node]
 
 		visited = {start_node}
 
 		while priority_queue:
-			priority_queue.sort(key=lambda node: node.costFromStart)
+			priority_queue.sort(key=lambda node: node.cost)
 			currNode = priority_queue.pop(0)
 			currNode.isExplored = True
 
 			if currNode == end_node:
-				return self.buildPath(currNode)
+				return self.buildPath(end_node)
 			
 			for neighbor in currNode.neighbors:
-				move_cost = self.calculate_cost(currNode, neighbor)
-				cost_to_end = 0
-				new_cost = currNode.costFromStart + move_cost + cost_to_end
+				neighbor.costFromStart = currNode.costFromStart + self.calculate_cost(currNode, neighbor)
+				neighbor.costToEnd = 0
+				new_cost = neighbor.costFromStart + neighbor.costToEnd
 				if neighbor not in visited:
-					neighbor.isVisted = True
+					neighbor.isVisited = True
 					visited.add(neighbor)
-					neighbor.costFromStart = new_cost
+					neighbor.cost = new_cost
 
 					neighbor.backNode = currNode
 					priority_queue.append(neighbor)
 				elif neighbor in visited:
-					if new_cost < neighbor.costFromStart:
-						neighbor.costFromStart = new_cost
+					if new_cost < neighbor.cost:
+						neighbor.cost = new_cost
 						neighbor.backNode = currNode
 
 				
@@ -201,6 +198,7 @@ class Graph():
 		end_node = self.getNodeFromPoint(end)
 
 		start_node.cost = 0
+		start_node.costFromStart = 0
 		priority_queue = [start_node]
 		visited = {start_node}
 
@@ -213,8 +211,8 @@ class Graph():
 				return self.buildPath(end_node)
 
 			for neighbor in currNode.neighbors:
-				neighbor.costFromStart = 0
-				neighbor.costToEnd = self.calculateHeuristic(neighbor, end_node) + self.calculate_cost(neighbor, end_node)
+				neighbor.costFromStart = self.calculate_cost(currNode, neighbor) + currNode.costFromStart
+				neighbor.costToEnd = self.calculateHeuristic(neighbor, end_node)
 				new_cost = neighbor.costFromStart + neighbor.costToEnd
 				if neighbor not in visited or new_cost < neighbor.cost:
 					
@@ -225,6 +223,7 @@ class Graph():
 						neighbor.isVisited = True
 						visited.add(neighbor)
 						priority_queue.append(neighbor)
+
 		# Return empty path indicating no path was found
 		return []
 
@@ -260,8 +259,6 @@ class Graph():
 						neighbor.isVisited = True
 						visited.add(neighbor)
 						priority_queue.append(neighbor)
-
-
 
         # No path found
 		return []
