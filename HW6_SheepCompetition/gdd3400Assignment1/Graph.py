@@ -113,30 +113,161 @@ class Graph():
 		return path
 
 	def findPath_Breadth(self, start, end):
-		""" Breadth Search """
-		#print("Breadth")
+		""" Breadth-first Search """
+		print("BREADTH")
 		self.reset()
 
+		# Initialize a queue for BFS
+		startNode = (self.getNodeFromPoint(start))
+		startNode.isStart = True
+		queue = [startNode]
+		visited = {startNode}
+		endNode = self.getNodeFromPoint(end)
+		endNode.isEnd = True
+		start.isVisited = True
+
+		if startNode == endNode:
+			return self.buildPath(startNode)
+		
+
+		# Continue BFS until the queue is empty
+		while queue:
+			currentNode = queue.pop(0)
+			currentNode.isExplored = True
+
+			if currentNode == endNode:
+				# Path found, reconstruct and return it
+				return self.buildPath(endNode)
+
+			# Explore neighbors
+			for neighbor in currentNode.neighbors:
+				if neighbor not in visited:
+					visited.add(neighbor)
+					queue.append(neighbor)
+					neighbor.isVisited = True
+					neighbor.backNode = currentNode
+
+
+			if currentNode.neighbors == endNode:
+				return self.buildPath(endNode)
+			
+		# No path found
 		return []
 
 	def findPath_Djikstra(self, start, end):
 		""" Djikstra's Search """
-		#print("DJIKSTRA")
+		# Reset the graph and initialize the starting node
+		print("DJIKSTRA")
 		self.reset()
+		start_node = self.getNodeFromPoint(start)
+		end_node = self.getNodeFromPoint(end)
 
+		start_node.cost = 0
+		start_node.costFromStart = 0
+		priority_queue = [start_node]
+
+		visited = {start_node}
+
+		while priority_queue:
+			priority_queue.sort(key=lambda node: node.cost)
+			currNode = priority_queue.pop(0)
+			currNode.isExplored = True
+
+			if currNode == end_node:
+				return self.buildPath(end_node)
+			
+			for neighbor in currNode.neighbors:
+				neighbor.costFromStart = currNode.costFromStart + self.calculate_cost(currNode, neighbor)
+				neighbor.costToEnd = 0
+				new_cost = neighbor.costFromStart + neighbor.costToEnd
+				if neighbor not in visited:
+					neighbor.isVisited = True
+					visited.add(neighbor)
+					neighbor.cost = new_cost
+
+					neighbor.backNode = currNode
+					priority_queue.append(neighbor)
+				elif neighbor in visited:
+					if new_cost < neighbor.cost:
+						neighbor.cost = new_cost
+						neighbor.backNode = currNode
+
+				
+		# No path found
 		return []
 
 	def findPath_AStar(self, start, end):
 		""" A Star Search """
-		#print("A_STAR")
+		print("A_STAR")
 		self.reset()
+		start_node = self.getNodeFromPoint(start)
+		end_node = self.getNodeFromPoint(end)
 
+		start_node.cost = 0
+		start_node.costFromStart = 0
+		priority_queue = [start_node]
+		visited = {start_node}
+
+		while priority_queue:
+			priority_queue.sort(key=lambda node:node.cost)
+			currNode = priority_queue.pop(0)
+			currNode.isExplored = True
+
+			if currNode == end_node:
+				return self.buildPath(end_node)
+
+			for neighbor in currNode.neighbors:
+				neighbor.costFromStart = self.calculate_cost(currNode, neighbor) + currNode.costFromStart
+				neighbor.costToEnd = self.calculateHeuristic(neighbor, end_node)
+				new_cost = neighbor.costFromStart + neighbor.costToEnd
+				if neighbor not in visited or new_cost < neighbor.cost:
+					
+					neighbor.cost = new_cost
+					neighbor.backNode = currNode
+					
+					if not neighbor.isVisited:
+						neighbor.isVisited = True
+						visited.add(neighbor)
+						priority_queue.append(neighbor)
+
+		# Return empty path indicating no path was found
 		return []
 
 	def findPath_BestFirst(self, start, end):
-		""" Best First Search """
-		#print("BEST_FIRST")
+		"""Best First Search"""
+		print("BEST_FIRST")
 		self.reset()
+		start_node = self.getNodeFromPoint(start)
+		end_node = self.getNodeFromPoint(end)
+
+		start_node.cost = 0
+		priority_queue = [start_node]
+		visited = {start_node}
+
+		while priority_queue:
+			priority_queue.sort(key=lambda node:node.cost)
+			currNode = priority_queue.pop(0)
+			currNode.isExplored = True
+
+			if currNode == end_node:
+				return self.buildPath(end_node)
+
+			for neighbor in currNode.neighbors:
+				neighbor.costFromStart = 0
+				neighbor.costToEnd = self.calculateHeuristic(neighbor, end_node)
+				new_cost = neighbor.costFromStart + neighbor.costToEnd
+				if neighbor not in visited or new_cost < neighbor.cost:
+					
+					neighbor.cost = new_cost
+					neighbor.backNode = currNode
+					
+					if not neighbor.isVisited:
+						neighbor.isVisited = True
+						visited.add(neighbor)
+						priority_queue.append(neighbor)
+
+        # No path found
+		return []
 
 		return []
 
