@@ -37,3 +37,9 @@ C:\Git\GDD3400_RTS\UnityRTS\ForceUnityToReleaseDLL\obj\Debug\ForceUnityToRelease
 C:\Git\GDD3400_RTS\UnityRTS\ForceUnityToReleaseDLL\obj\Debug\ForceUnityToReleaseDLL.dll
 C:\Git\GDD3400_RTS\UnityRTS\ForceUnityToReleaseDLL\obj\Debug\ForceUnityToReleaseDLL.pdb
 C:\Git\GDD3400_RTS\UnityRTS\ForceUnityToReleaseDLL\obj\Debug\ForceUnityToReleaseDLL.csproj.AssemblyReference.cache
+C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\RTS\Assets\ForceUnityToReleaseDLL.dll
+C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\RTS\Assets\ForceUnityToReleaseDLL.pdb
+C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\ForceUnityToReleaseDLL\obj\Debug\ForceUnityToReleaseDLL.csproj.AssemblyReference.cache
+C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\ForceUnityToReleaseDLL\obj\Debug\ForceUnityToReleaseDLL.csproj.CoreCompileInputs.cache
+C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\ForceUnityToReleaseDLL\obj\Debug\ForceUnityToReleaseDLL.dll
+C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\ForceUnityToReleaseDLL\obj\Debug\ForceUnityToReleaseDLL.pdb

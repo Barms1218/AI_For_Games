@@ -272,7 +272,8 @@ namespace GameManager
         /// </summary>
         public override void InitializeMatch()
         {
-            Debug.Log("Moron's: " + AgentName);
+            Debug.Log("My change works.");
+            Debug.Log("Branden's: " + AgentName);
             //Debug.Log("PlanningAgent::InitializeMatch");
         }
 
