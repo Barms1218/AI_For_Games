@@ -356,3 +356,15 @@ C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-mas
 C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\obj\Debug\PlanningAgent.csproj.CopyComplete
 C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\obj\Debug\PlanningAgent.dll
 C:\Users\brand\OneDrive\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\obj\Debug\PlanningAgent.pdb
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\bin\Debug\PlanningAgent.xml
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\bin\Debug\PlanningAgent.dll
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\bin\Debug\PlanningAgent.pdb
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\bin\Debug\GameManager.dll
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\bin\Debug\Preloader.dll
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\bin\Debug\GameManager.xml
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\bin\Debug\Preloader.xml
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\obj\Debug\PlanningAgent.csproj.AssemblyReference.cache
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\obj\Debug\PlanningAgent.csproj.CoreCompileInputs.cache
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\obj\Debug\PlanningAgent.csproj.CopyComplete
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\obj\Debug\PlanningAgent.dll
+C:\Users\brand\Documents\Schoolwork\Python\AI_For_Games\GDD3400_RTS-master\UnityRTS\PlanningAgent\obj\Debug\PlanningAgent.pdb
