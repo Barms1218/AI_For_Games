@@ -171,7 +171,14 @@ namespace GameManager
             // For each worker
             foreach (int worker in myWorkers)
             {
-                buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainMineNbr).GridPosition)).ToList();
+                if (myBases.Count < 1)
+                {
+                    buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainMineNbr).GridPosition)).ToList();
+                }
+                else
+                {
+                    buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mines[1]).GridPosition)).ToList();
+                }
                 // Grab the unit we need for this function
                 Unit unit = GameManager.Instance.GetUnit(worker);
 
@@ -223,12 +230,6 @@ namespace GameManager
                         }
                     }
                 }
-            }
-
-            if (myRefineries.Count > 1 &&  myBarracks.Count > 1)
-            {
-                playerState = PlayerState.BuildArmy;
-                Debug.Log(playerState.ToString());
             }
         }
 
@@ -355,7 +356,6 @@ namespace GameManager
             // Initialize all of the unit lists
             mines = new List<int>();
             mines = GameManager.Instance.GetUnitNbrsOfType(UnitType.MINE, AgentNbr);
-            myBase = GameManager.Instance.GetUnit(mainBaseNbr);
 
             myWorkers = new List<int>();
             mySoldiers = new List<int>();
@@ -391,7 +391,7 @@ namespace GameManager
             myBases = GameManager.Instance.GetUnitNbrsOfType(UnitType.BASE, AgentNbr);
             myRefineries = GameManager.Instance.GetUnitNbrsOfType(UnitType.REFINERY, AgentNbr);
 
-            Debug.Log(playerState);
+            Debug.Log("Player State is: " + playerState);
             // Workers will look for the closest mine every state update
             FindClosestMine();
             // Update the enemy agents & unitNbrs
@@ -437,7 +437,7 @@ namespace GameManager
                     }
 
                     // If we don't have a base, build a base
-                    if (myBases.Count == 0)
+                    if (myBases.Count <= 1)
                     {
                         mainBaseNbr = -1;
 
@@ -455,6 +455,11 @@ namespace GameManager
                     if (myRefineries.Count == 0 && GameManager.Instance.GetUnit(mainBaseNbr).IsBuilt)
                     {
                         BuildBuilding(UnitType.REFINERY);
+                    }
+
+                    if (myRefineries.Count > 0 && myBarracks.Count > 0)
+                    {
+                        playerState = PlayerState.BuildArmy;
                     }
                     break;
                 case PlayerState.BuildArmy:
