@@ -9,6 +9,8 @@ using System;
 // This is the Moron Agent
 /////////////////////////////////////////////////////////////////////////////
 
+
+
 namespace GameManager
 {
     ///<summary>Planning Agent is the over-head planner that decided where
@@ -25,6 +27,13 @@ namespace GameManager
         // Handy short-cuts for pulling all of the relevant data that you
         // might use for each decision.  Feel free to add your own.
         ///////////////////////////////////////////////////////////////////////
+        ///
+        private enum PlayerState
+        {
+            BuildBase = 0,
+            BuildArmy = 1,
+            ATTACK = 2
+        }
 
         /// <summary>
         /// The enemy's agent number
@@ -111,6 +120,13 @@ namespace GameManager
         /// </summary>
         private List<Vector3Int> buildPositions { get; set; }
 
+        private Unit myBase;
+
+        /// <summary>
+        /// The state that the player's forces are in.
+        /// </summary>
+        private PlayerState playerState;
+
         /// <summary>
         /// Finds all of the possible build locations for a specific UnitType.
         /// Currently, all structures are 3x3, so these positions can be reused
@@ -173,6 +189,12 @@ namespace GameManager
                     }
                 }
             }
+
+            if (myBases.Count > 1 &&  myBarracks.Count > 1)
+            {
+                playerState = PlayerState.BuildArmy;
+                Debug.Log(playerState.ToString());
+            }
         }
 
         /// <summary>
@@ -181,7 +203,7 @@ namespace GameManager
         /// <param name="myTroops"></param>
         public void AttackEnemy(List<int> myTroops)
         {
-            if (myTroops.Count > 3)
+            if (myTroops.Count > 15)
             {
                 // For each of my troops in this collection
                 foreach (int troopNbr in myTroops)
@@ -190,8 +212,9 @@ namespace GameManager
                     Unit troopUnit = GameManager.Instance.GetUnit(troopNbr);
                     if (troopUnit.CurrentAction == UnitAction.IDLE)
                     {
+                        
                         // If there are archers to attack
-                        if (enemyArchers.Count > 0)
+                        if (enemyArchers.Count > 0 && enemySoldiers.Count <= 0)
                         {
                             Attack(troopUnit, GameManager.Instance.GetUnit(enemyArchers[UnityEngine.Random.Range(0, enemyArchers.Count)]));
                         }
@@ -201,12 +224,12 @@ namespace GameManager
                             Attack(troopUnit, GameManager.Instance.GetUnit(enemySoldiers[UnityEngine.Random.Range(0, enemySoldiers.Count)]));
                         }
                         // If there are workers to attack
-                        else if (enemyWorkers.Count > 0)
+                        else if (enemyWorkers.Count > 0 && enemyArchers.Count <= 0 && enemySoldiers.Count <= 0)
                         {
                             Attack(troopUnit, GameManager.Instance.GetUnit(enemyWorkers[UnityEngine.Random.Range(0, enemyWorkers.Count)]));
                         }
                         // If there are bases to attack
-                        else if (enemyBases.Count > 0)
+                        else if (enemyBases.Count > 0 && enemyBarracks.Count <= 0)
                         {
                             Attack(troopUnit, GameManager.Instance.GetUnit(enemyBases[UnityEngine.Random.Range(0, enemyBases.Count)]));
                         }
@@ -216,7 +239,7 @@ namespace GameManager
                             Attack(troopUnit, GameManager.Instance.GetUnit(enemyBarracks[UnityEngine.Random.Range(0, enemyBarracks.Count)]));
                         }
                         // If there are refineries to attack
-                        else if (enemyRefineries.Count > 0)
+                        else if (enemyRefineries.Count > 0 && enemyBases.Count <= 0)
                         {
                             Attack(troopUnit, GameManager.Instance.GetUnit(enemyRefineries[UnityEngine.Random.Range(0, enemyRefineries.Count)]));
                         }
@@ -274,6 +297,8 @@ namespace GameManager
         {
             Debug.Log("My change works.");
             Debug.Log("Branden's: " + AgentName);
+            playerState = PlayerState.BuildBase;
+            Debug.Log(playerState.ToString());
             //Debug.Log("PlanningAgent::InitializeMatch");
         }
 
@@ -294,6 +319,8 @@ namespace GameManager
 
             // Initialize all of the unit lists
             mines = new List<int>();
+            mines = GameManager.Instance.GetUnitNbrsOfType(UnitType.MINE, AgentNbr);
+            myBase = GameManager.Instance.GetUnit(mainBaseNbr);
 
             myWorkers = new List<int>();
             mySoldiers = new List<int>();
@@ -308,6 +335,8 @@ namespace GameManager
             enemyBases = new List<int>();
             enemyBarracks = new List<int>();
             enemyRefineries = new List<int>();
+
+
         }
 
         /// <summary>
@@ -358,58 +387,66 @@ namespace GameManager
                 mainMineNbr = -1;
             }
 
-            // If we have at least one base, assume the first one is our "main" base
-            if (myBases.Count > 0)
+            switch (playerState)
             {
-                mainBaseNbr = myBases[0];
-                //Debug.Log("BaseNbr " + mainBaseNbr);
-                //Debug.Log("MineNbr " + mainMineNbr);
-            }
+                case PlayerState.BuildBase:
+                    // If we have at least one base, assume the first one is our "main" base
+                    if (myBases.Count > 0)
+                    {
+                        mainBaseNbr = myBases[0];
+                        //Debug.Log("BaseNbr " + mainBaseNbr);
+                        //Debug.Log("MineNbr " + mainMineNbr);
+                    }
 
-            // If we don't have 2 bases, build a base
-            if (myBases.Count == 0)
-            {
-                mainBaseNbr = -1;
+                    // If we don't have 2 bases, build a base
+                    if (myBases.Count == 0)
+                    {
+                        mainBaseNbr = -1;
 
-                BuildBuilding(UnitType.BASE);
-            }
+                        BuildBuilding(UnitType.BASE);
+                    }
 
-            // If we don't have any barracks, build a barracks
-            if (myBarracks.Count == 0)
-            {
-                BuildBuilding(UnitType.BARRACKS);
-            }
+                    // If we don't have any barracks, build a barracks
+                    if (myBarracks.Count == 0 && GameManager.Instance.GetUnit(mainBaseNbr) != null)
+                    {
+                        BuildBuilding(UnitType.BARRACKS);
+                    }
 
-            // If we don't have any barracks, build a barracks
-            if (myRefineries.Count == 0)
-            {
-                BuildBuilding(UnitType.REFINERY);
-            }
+                    // If we don't have any barracks, build a barracks
+                    if (myRefineries.Count == 0)
+                    {
+                        BuildBuilding(UnitType.REFINERY);
+                    }
+                    break;
+                case PlayerState.BuildArmy:
+                    // For each barracks, determine if it should train a soldier or an archer
+                    foreach (int barracksNbr in myBarracks)
+                    {
+                        // Get the barracks
+                        Unit barracksUnit = GameManager.Instance.GetUnit(barracksNbr);
 
-            // For any troops, attack the enemy
-            AttackEnemy(mySoldiers);
-            AttackEnemy(myArchers);
+                        // If this barracks still exists, is idle, we need archers, and have gold
+                        if (barracksUnit != null && barracksUnit.IsBuilt
+                                 && barracksUnit.CurrentAction == UnitAction.IDLE
+                                 && Gold >= Constants.COST[UnitType.ARCHER])
+                        {
+                            Train(barracksUnit, UnitType.ARCHER);
+                        }
+                        // If this barracks still exists, is idle, we need soldiers, and have gold
+                        if (barracksUnit != null && barracksUnit.IsBuilt
+                            && barracksUnit.CurrentAction == UnitAction.IDLE
+                            && Gold >= Constants.COST[UnitType.SOLDIER])
+                        {
+                            Train(barracksUnit, UnitType.SOLDIER);
+                        }
+                    }
+                    break;
+                case PlayerState.ATTACK:
+                    // For any troops, attack the enemy
+                    AttackEnemy(mySoldiers);
+                    AttackEnemy(myArchers);
+                    break;
 
-            // For each barracks, determine if it should train a soldier or an archer
-            foreach (int barracksNbr in myBarracks)
-            {
-                // Get the barracks
-                Unit barracksUnit = GameManager.Instance.GetUnit(barracksNbr);
-
-                // If this barracks still exists, is idle, we need archers, and have gold
-                if (barracksUnit != null && barracksUnit.IsBuilt
-                         && barracksUnit.CurrentAction == UnitAction.IDLE
-                         && Gold >= Constants.COST[UnitType.ARCHER])
-                {
-                    Train(barracksUnit, UnitType.ARCHER);
-                }
-                // If this barracks still exists, is idle, we need soldiers, and have gold
-                if (barracksUnit != null && barracksUnit.IsBuilt
-                    && barracksUnit.CurrentAction == UnitAction.IDLE
-                    && Gold >= Constants.COST[UnitType.SOLDIER])
-                {
-                    Train(barracksUnit, UnitType.SOLDIER);
-                }
             }
 
             // For each base, determine if it should train a worker
@@ -446,6 +483,15 @@ namespace GameManager
                     }
                 }
             }
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void FindClosestMine()
+        {
+
         }
 
         #endregion

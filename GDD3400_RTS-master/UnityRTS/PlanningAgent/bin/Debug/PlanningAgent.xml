@@ -10,6 +10,9 @@
              AI is handled by other classes (like pathfinding).
             </summary> 
         </member>
+        <member name="T:GameManager.PlanningAgent.PlayerState">
+            
+        </member>
         <member name="P:GameManager.PlanningAgent.enemyAgentNbr">
             <summary>
             The enemy's agent number
@@ -93,6 +96,11 @@
         <member name="P:GameManager.PlanningAgent.buildPositions">
             <summary>
             List of the possible build positions for a 3x3 unit
+            </summary>
+        </member>
+        <member name="F:GameManager.PlanningAgent.playerState">
+            <summary>
+            The state that the player's forces are in.
             </summary>
         </member>
         <member name="M:GameManager.PlanningAgent.FindProspectiveBuildPositions(GameManager.EnumTypes.UnitType)">
