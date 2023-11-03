@@ -163,6 +163,36 @@ namespace GameManager
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public void BuildBase()
+        {
+            // For each worker
+            foreach (int worker in myWorkers)
+            {
+                // Grab the unit we need for this function
+                Unit unit = GameManager.Instance.GetUnit(worker);
+
+                mainBaseNbr = 0;
+
+                // Make sure this unit actually exists and we have enough gold
+                if (unit != null && Gold >= Constants.COST[UnitType.BASE]) ;
+                {
+                    // Find the closest build position to this worker's position (DUMB) and 
+                    // build the base there
+                    foreach (Vector3Int toBuild in buildPositions)
+                    {
+                        if (GameManager.Instance.IsBoundedAreaBuildable(UnitType.BASE, toBuild))
+                        {
+                            Build(unit, toBuild, UnitType.BASE);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Build a building
         /// </summary>
         /// <param name="unitType"></param>
@@ -317,6 +347,7 @@ namespace GameManager
             mainMineNbr = -1;
             mainBaseNbr = -1;
 
+            FindClosestMine();
             // Initialize all of the unit lists
             mines = new List<int>();
             mines = GameManager.Instance.GetUnitNbrsOfType(UnitType.MINE, AgentNbr);
@@ -398,21 +429,22 @@ namespace GameManager
                         //Debug.Log("MineNbr " + mainMineNbr);
                     }
 
-                    // If we don't have 2 bases, build a base
+                    // If we don't have a base, build a base
                     if (myBases.Count == 0)
                     {
                         mainBaseNbr = -1;
 
-                        BuildBuilding(UnitType.BASE);
+                        BuildBase();
                     }
 
-                    // If we don't have any barracks, build a barracks
-                    if (myBarracks.Count == 0 && GameManager.Instance.GetUnit(mainBaseNbr) != null)
+                    // If we don't have any barracks, build a barracks,
+                    // but build a base first
+                    if (myBarracks.Count == 0 && GameManager.Instance.GetUnit(mainBaseNbr).IsBuilt)
                     {
                         BuildBuilding(UnitType.BARRACKS);
                     }
-
-                    // If we don't have any barracks, build a barracks
+                    
+                    // If we don't have any refineries, build a refinery
                     if (myRefineries.Count == 0)
                     {
                         BuildBuilding(UnitType.REFINERY);
@@ -489,9 +521,25 @@ namespace GameManager
 
         #region Private Methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private void FindClosestMine()
         {
+            Dictionary<Unit, float> minePostDict = new Dictionary<Unit, float> ();
 
+            Unit worker = GameManager.Instance.GetUnit(myWorkers[0]);
+            
+            if (worker != null)
+            {
+                foreach (int mine in mines)
+                {
+                    mines = mines.OrderBy(pos => Vector3Int.Distance(worker.GridPosition, GameManager.Instance.GetUnit(mine).GridPosition)).ToList();
+                }
+            }
+
+            mainMineNbr = mines[0];
         }
 
         #endregion
