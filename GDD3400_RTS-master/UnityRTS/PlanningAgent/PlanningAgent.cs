@@ -4,6 +4,7 @@ using GameManager.EnumTypes;
 using GameManager.GameElements;
 using UnityEngine;
 using System;
+using static UnityEngine.UI.GridLayoutGroup;
 
 /////////////////////////////////////////////////////////////////////////////
 // This is the Moron Agent
@@ -170,13 +171,14 @@ namespace GameManager
             // For each worker
             foreach (int worker in myWorkers)
             {
+                buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainMineNbr).GridPosition)).ToList();
                 // Grab the unit we need for this function
                 Unit unit = GameManager.Instance.GetUnit(worker);
 
                 mainBaseNbr = 0;
 
                 // Make sure this unit actually exists and we have enough gold
-                if (unit != null && Gold >= Constants.COST[UnitType.BASE]) ;
+                if (unit != null && Gold >= Constants.COST[UnitType.BASE]) 
                 {
                     // Find the closest build position to this worker's position (DUMB) and 
                     // build the base there
@@ -201,6 +203,9 @@ namespace GameManager
             // For each worker
             foreach (int worker in myWorkers)
             {
+
+                buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainBaseNbr).GridPosition)).ToList();
+
                 // Grab the unit we need for this function
                 Unit unit = GameManager.Instance.GetUnit(worker);
 
@@ -220,7 +225,7 @@ namespace GameManager
                 }
             }
 
-            if (myBases.Count > 1 &&  myBarracks.Count > 1)
+            if (myRefineries.Count > 1 &&  myBarracks.Count > 1)
             {
                 playerState = PlayerState.BuildArmy;
                 Debug.Log(playerState.ToString());
@@ -347,7 +352,6 @@ namespace GameManager
             mainMineNbr = -1;
             mainBaseNbr = -1;
 
-            FindClosestMine();
             // Initialize all of the unit lists
             mines = new List<int>();
             mines = GameManager.Instance.GetUnitNbrsOfType(UnitType.MINE, AgentNbr);
@@ -387,6 +391,9 @@ namespace GameManager
             myBases = GameManager.Instance.GetUnitNbrsOfType(UnitType.BASE, AgentNbr);
             myRefineries = GameManager.Instance.GetUnitNbrsOfType(UnitType.REFINERY, AgentNbr);
 
+            Debug.Log(playerState);
+            // Workers will look for the closest mine every state update
+            FindClosestMine();
             // Update the enemy agents & unitNbrs
             List<int> enemyAgentNbrs = GameManager.Instance.GetEnemyAgentNbrs(AgentNbr);
             if (enemyAgentNbrs.Any())
@@ -425,8 +432,8 @@ namespace GameManager
                     if (myBases.Count > 0)
                     {
                         mainBaseNbr = myBases[0];
-                        //Debug.Log("BaseNbr " + mainBaseNbr);
-                        //Debug.Log("MineNbr " + mainMineNbr);
+                        Debug.Log("BaseNbr " + mainBaseNbr);
+                        Debug.Log("MineNbr " + mainMineNbr);
                     }
 
                     // If we don't have a base, build a base
@@ -445,7 +452,7 @@ namespace GameManager
                     }
                     
                     // If we don't have any refineries, build a refinery
-                    if (myRefineries.Count == 0)
+                    if (myRefineries.Count == 0 && GameManager.Instance.GetUnit(mainBaseNbr).IsBuilt)
                     {
                         BuildBuilding(UnitType.REFINERY);
                     }
@@ -527,8 +534,6 @@ namespace GameManager
         /// <returns></returns>
         private void FindClosestMine()
         {
-            Dictionary<Unit, float> minePostDict = new Dictionary<Unit, float> ();
-
             Unit worker = GameManager.Instance.GetUnit(myWorkers[0]);
             
             if (worker != null)
