@@ -457,30 +457,37 @@ namespace GameManager
                     break;
                 case PlayerState.BuildArmy:
 
-                    BuildBuilding(UnitType.BARRACKS);
+                    if (myBarracks.Count < 2)
+                    {
+                        BuildBuilding(UnitType.BARRACKS);
+                    }
                     // For each barracks, determine if it should train a soldier or an archer
                     foreach (int barracksNbr in myBarracks)
                     {
+                        int soldierChance = UnityEngine.Random.Range(0, 100);
+
                         // Get the barracks
                         Unit barracksUnit = GameManager.Instance.GetUnit(barracksNbr);
 
                         // If this barracks still exists, is idle, we need archers, and have gold
                         if (barracksUnit != null && barracksUnit.IsBuilt
                                  && barracksUnit.CurrentAction == UnitAction.IDLE
-                                 && Gold >= Constants.COST[UnitType.ARCHER])
+                                 && Gold >= Constants.COST[UnitType.ARCHER]
+                                 && soldierChance < 50)
                         {
                             Train(barracksUnit, UnitType.ARCHER);
                         }
                         // If this barracks still exists, is idle, we need soldiers, and have gold
                         if (barracksUnit != null && barracksUnit.IsBuilt
                             && barracksUnit.CurrentAction == UnitAction.IDLE
-                            && Gold >= Constants.COST[UnitType.SOLDIER])
+                            && Gold >= Constants.COST[UnitType.SOLDIER]
+                            && soldierChance > 50)
                         {
                             Train(barracksUnit, UnitType.SOLDIER);
                         }
                     }
 
-                    if (mySoldiers.Count + myArchers.Count > 30)
+                    if (mySoldiers.Count + myArchers.Count > 20)
                     {
                         playerState = PlayerState.ATTACK;
                     }
@@ -553,8 +560,6 @@ namespace GameManager
                     mines = mines.OrderBy(pos => Vector3Int.Distance(worker.GridPosition, GameManager.Instance.GetUnit(mine).GridPosition)).ToList();
                 }
             }
-
-            mainMineNbr = mines[0];
         }
 
         #endregion
