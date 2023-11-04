@@ -171,14 +171,7 @@ namespace GameManager
             // For each worker
             foreach (int worker in myWorkers)
             {
-                if (myBases.Count < 1)
-                {
-                    buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainMineNbr).GridPosition)).ToList();
-                }
-                else
-                {
-                    buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mines[1]).GridPosition)).ToList();
-                }
+                buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainMineNbr).GridPosition)).ToList();
                 // Grab the unit we need for this function
                 Unit unit = GameManager.Instance.GetUnit(worker);
 
@@ -392,8 +385,7 @@ namespace GameManager
             myRefineries = GameManager.Instance.GetUnitNbrsOfType(UnitType.REFINERY, AgentNbr);
 
             Debug.Log("Player State is: " + playerState);
-            // Workers will look for the closest mine every state update
-            FindClosestMine();
+
             // Update the enemy agents & unitNbrs
             List<int> enemyAgentNbrs = GameManager.Instance.GetEnemyAgentNbrs(AgentNbr);
             if (enemyAgentNbrs.Any())
@@ -437,7 +429,7 @@ namespace GameManager
                     }
 
                     // If we don't have a base, build a base
-                    if (myBases.Count <= 1)
+                    if (myBases.Count < 1)
                     {
                         mainBaseNbr = -1;
 
@@ -459,10 +451,13 @@ namespace GameManager
 
                     if (myRefineries.Count > 0 && myBarracks.Count > 0)
                     {
+                        Debug.Log("CHANGING PLAYER STATE TO BUILD ARMY!!!!");
                         playerState = PlayerState.BuildArmy;
                     }
                     break;
                 case PlayerState.BuildArmy:
+
+                    BuildBuilding(UnitType.BARRACKS);
                     // For each barracks, determine if it should train a soldier or an archer
                     foreach (int barracksNbr in myBarracks)
                     {
@@ -483,6 +478,11 @@ namespace GameManager
                         {
                             Train(barracksUnit, UnitType.SOLDIER);
                         }
+                    }
+
+                    if (mySoldiers.Count + myArchers.Count > 30)
+                    {
+                        playerState = PlayerState.ATTACK;
                     }
                     break;
                 case PlayerState.ATTACK:
@@ -515,6 +515,12 @@ namespace GameManager
                 // Grab the unit we need for this function
                 Unit unit = GameManager.Instance.GetUnit(worker);
 
+                // Workers will look for the closest mine every state update
+                if (myWorkers.Count > 0)
+                {
+                    FindClosestMine(unit);
+                }
+
                 // Make sure this unit actually exists and is idle
                 if (unit != null && unit.CurrentAction == UnitAction.IDLE && mainBaseNbr >= 0 && mainMineNbr >= 0)
                 {
@@ -537,9 +543,8 @@ namespace GameManager
         /// 
         /// </summary>
         /// <returns></returns>
-        private void FindClosestMine()
+        private void FindClosestMine(Unit worker)
         {
-            Unit worker = GameManager.Instance.GetUnit(myWorkers[0]);
             
             if (worker != null)
             {
