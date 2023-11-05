@@ -20,7 +20,7 @@ namespace GameManager
     ///</summary> 
     public class PlanningAgent : Agent
     {
-        private const int MAX_NBR_WORKERS = 20;
+        private const int MAX_NBR_WORKERS = 10;
 
         #region Private Data
 
@@ -232,72 +232,46 @@ namespace GameManager
         /// <param name="myTroops"></param>
         public void AttackEnemy(List<int> myTroops)
         {
-            if (myTroops.Count > 15)
+            // For each of my troops in this collection
+            foreach (int troopNbr in myTroops)
             {
-                // For each of my troops in this collection
-                foreach (int troopNbr in myTroops)
+                // If this troop is idle, give him something to attack
+                Unit troopUnit = GameManager.Instance.GetUnit(troopNbr);
+                if (troopUnit.CurrentAction == UnitAction.IDLE)
                 {
-                    // If this troop is idle, give him something to attack
-                    Unit troopUnit = GameManager.Instance.GetUnit(troopNbr);
-                    if (troopUnit.CurrentAction == UnitAction.IDLE)
+
+                    // If there are soldiers to attack
+                    if (enemySoldiers.Count > 0)
                     {
-                        
-                        // If there are archers to attack
-                        if (enemyArchers.Count > 0 && enemySoldiers.Count <= 0)
-                        {
-                            Attack(troopUnit, GameManager.Instance.GetUnit(enemyArchers[UnityEngine.Random.Range(0, enemyArchers.Count)]));
-                        }
-                        // If there are soldiers to attack
-                        else if (enemySoldiers.Count > 0)
-                        {
-                            Attack(troopUnit, GameManager.Instance.GetUnit(enemySoldiers[UnityEngine.Random.Range(0, enemySoldiers.Count)]));
-                        }
-                        // If there are workers to attack
-                        else if (enemyWorkers.Count > 0 && enemyArchers.Count <= 0 && enemySoldiers.Count <= 0)
-                        {
-                            Attack(troopUnit, GameManager.Instance.GetUnit(enemyWorkers[UnityEngine.Random.Range(0, enemyWorkers.Count)]));
-                        }
-                        // If there are bases to attack
-                        else if (enemyBases.Count > 0 && enemyBarracks.Count <= 0)
-                        {
-                            Attack(troopUnit, GameManager.Instance.GetUnit(enemyBases[UnityEngine.Random.Range(0, enemyBases.Count)]));
-                        }
-                        // If there are barracks to attack
-                        else if (enemyBarracks.Count > 0)
-                        {
-                            Attack(troopUnit, GameManager.Instance.GetUnit(enemyBarracks[UnityEngine.Random.Range(0, enemyBarracks.Count)]));
-                        }
-                        // If there are refineries to attack
-                        else if (enemyRefineries.Count > 0 && enemyBases.Count <= 0)
-                        {
-                            Attack(troopUnit, GameManager.Instance.GetUnit(enemyRefineries[UnityEngine.Random.Range(0, enemyRefineries.Count)]));
-                        }
+                        Attack(troopUnit, GameManager.Instance.GetUnit(enemySoldiers[UnityEngine.Random.Range(0, enemySoldiers.Count)]));
+                    }
+                    // If there are archers to attack and no soldiers
+                    else if (enemyArchers.Count > 0 && enemySoldiers.Count <= 0)
+                    {
+                        Attack(troopUnit, GameManager.Instance.GetUnit(enemyArchers[UnityEngine.Random.Range(0, enemyArchers.Count)]));
+                    }
+                    // If there are workers to attack
+                    else if (enemyWorkers.Count > 0 && enemyArchers.Count + enemySoldiers.Count <= 0)
+                    {
+                        Attack(troopUnit, GameManager.Instance.GetUnit(enemyWorkers[UnityEngine.Random.Range(0, enemyWorkers.Count)]));
+                    }
+                    // If there are barracks to attack
+                    else if (enemyBarracks.Count > 0 && enemyWorkers.Count + enemySoldiers.Count + enemyArchers.Count <= 0)
+                    {
+                        Attack(troopUnit, GameManager.Instance.GetUnit(enemyBarracks[UnityEngine.Random.Range(0, enemyBarracks.Count)]));
+                    }
+                    // If there are bases to attack
+                    else if (enemyBases.Count > 0 && enemyBarracks.Count <= 0)
+                    {
+                        Attack(troopUnit, GameManager.Instance.GetUnit(enemyBases[UnityEngine.Random.Range(0, enemyBases.Count)]));
+                    }
+                    // If there are refineries to attack
+                    else if (enemyRefineries.Count > 0 && enemyBases.Count + enemyBarracks.Count <= 0)
+                    {
+                        Attack(troopUnit, GameManager.Instance.GetUnit(enemyRefineries[UnityEngine.Random.Range(0, enemyRefineries.Count)]));
                     }
                 }
-            }
-            else if (myTroops.Count > 0)
-            {
-                // Find a good rally point
-                Vector3Int rallyPoint = Vector3Int.zero;
-                foreach (Vector3Int toBuild in buildPositions)
-                {
-                    if (GameManager.Instance.IsBoundedAreaBuildable(UnitType.BASE, toBuild))
-                    {
-                        rallyPoint = toBuild;
-                        // For each of my troops in this collection
-                        foreach (int troopNbr in myTroops)
-                        {
-                            // If this troop is idle, give him something to attack
-                            Unit troopUnit = GameManager.Instance.GetUnit(troopNbr);
-                            if (troopUnit.CurrentAction == UnitAction.IDLE)
-                            {
-                                Move(troopUnit, rallyPoint);
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
+            } 
         }
         #endregion
 
@@ -454,9 +428,26 @@ namespace GameManager
                         Debug.Log("CHANGING PLAYER STATE TO BUILD ARMY!!!!");
                         playerState = PlayerState.BuildArmy;
                     }
+
+                    // For each base, determine if it should train a worker
+                    foreach (int baseNbr in myBases)
+                    {
+                        // Get the base unit
+                        Unit baseUnit = GameManager.Instance.GetUnit(baseNbr);
+
+                        // If the base exists, is idle, we need a worker, and we have gold
+                        if (baseUnit != null && baseUnit.IsBuilt
+                                             && baseUnit.CurrentAction == UnitAction.IDLE
+                                             && Gold >= Constants.COST[UnitType.WORKER]
+                                             && myWorkers.Count < MAX_NBR_WORKERS)
+                        {
+                            Train(baseUnit, UnitType.WORKER);
+                        }
+                    }
                     break;
                 case PlayerState.BuildArmy:
 
+                    // Build a second barracks so my army grows faster
                     if (myBarracks.Count < 2)
                     {
                         BuildBuilding(UnitType.BARRACKS);
@@ -473,47 +464,37 @@ namespace GameManager
                         if (barracksUnit != null && barracksUnit.IsBuilt
                                  && barracksUnit.CurrentAction == UnitAction.IDLE
                                  && Gold >= Constants.COST[UnitType.ARCHER]
-                                 && soldierChance < 50)
+                                 && mySoldiers.Count >= 5)
                         {
                             Train(barracksUnit, UnitType.ARCHER);
                         }
                         // If this barracks still exists, is idle, we need soldiers, and have gold
                         if (barracksUnit != null && barracksUnit.IsBuilt
                             && barracksUnit.CurrentAction == UnitAction.IDLE
-                            && Gold >= Constants.COST[UnitType.SOLDIER]
-                            && soldierChance > 50)
+                            && Gold >= Constants.COST[UnitType.SOLDIER])
                         {
                             Train(barracksUnit, UnitType.SOLDIER);
                         }
                     }
-
-                    if (mySoldiers.Count + myArchers.Count > 20)
+                    if (mySoldiers.Count + myArchers.Count > 8)
                     {
                         playerState = PlayerState.ATTACK;
+                    }
+                    else if (myWorkers.Count < 3)
+                    {
+                        playerState = PlayerState.BuildBase;
                     }
                     break;
                 case PlayerState.ATTACK:
                     // For any troops, attack the enemy
                     AttackEnemy(mySoldiers);
                     AttackEnemy(myArchers);
+                    if (mySoldiers.Count + myArchers.Count < 3)
+                    {
+                        playerState = PlayerState.BuildArmy;
+                    }
                     break;
 
-            }
-
-            // For each base, determine if it should train a worker
-            foreach (int baseNbr in myBases)
-            {
-                // Get the base unit
-                Unit baseUnit = GameManager.Instance.GetUnit(baseNbr);
-
-                // If the base exists, is idle, we need a worker, and we have gold
-                if (baseUnit != null && baseUnit.IsBuilt
-                                     && baseUnit.CurrentAction == UnitAction.IDLE
-                                     && Gold >= Constants.COST[UnitType.WORKER]
-                                     && myWorkers.Count < MAX_NBR_WORKERS)
-                {
-                    Train(baseUnit, UnitType.WORKER);
-                }
             }
 
             // For each worker
