@@ -20,7 +20,7 @@ namespace GameManager
     ///</summary> 
     public class PlanningAgent : Agent
     {
-        private const int MAX_NBR_WORKERS = 10;
+        private const int MAX_NBR_WORKERS = 20;
 
         #region Private Data
 
@@ -251,12 +251,12 @@ namespace GameManager
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemyArchers[UnityEngine.Random.Range(0, enemyArchers.Count)]));
                     }
                     // If there are workers to attack
-                    else if (enemyWorkers.Count > 0 && enemyArchers.Count + enemySoldiers.Count <= 0)
+                    else if (enemyWorkers.Count > 0 && enemyArchers.Count + enemySoldiers.Count + enemyBarracks.Count <= 0)
                     {
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemyWorkers[UnityEngine.Random.Range(0, enemyWorkers.Count)]));
                     }
                     // If there are barracks to attack
-                    else if (enemyBarracks.Count > 0 && enemyWorkers.Count + enemySoldiers.Count + enemyArchers.Count <= 0)
+                    else if (enemyBarracks.Count > 0 && enemySoldiers.Count + enemyArchers.Count <= 0)
                     {
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemyBarracks[UnityEngine.Random.Range(0, enemyBarracks.Count)]));
                     }
@@ -429,21 +429,7 @@ namespace GameManager
                         playerState = PlayerState.BuildArmy;
                     }
 
-                    // For each base, determine if it should train a worker
-                    foreach (int baseNbr in myBases)
-                    {
-                        // Get the base unit
-                        Unit baseUnit = GameManager.Instance.GetUnit(baseNbr);
-
-                        // If the base exists, is idle, we need a worker, and we have gold
-                        if (baseUnit != null && baseUnit.IsBuilt
-                                             && baseUnit.CurrentAction == UnitAction.IDLE
-                                             && Gold >= Constants.COST[UnitType.WORKER]
-                                             && myWorkers.Count < MAX_NBR_WORKERS)
-                        {
-                            Train(baseUnit, UnitType.WORKER);
-                        }
-                    }
+                    TrainWorkers(10);
                     break;
                 case PlayerState.BuildArmy:
 
@@ -452,31 +438,8 @@ namespace GameManager
                     {
                         BuildBuilding(UnitType.BARRACKS);
                     }
-                    // For each barracks, determine if it should train a soldier or an archer
-                    foreach (int barracksNbr in myBarracks)
-                    {
-                        int soldierChance = UnityEngine.Random.Range(0, 100);
-
-                        // Get the barracks
-                        Unit barracksUnit = GameManager.Instance.GetUnit(barracksNbr);
-
-                        // If this barracks still exists, is idle, we need archers, and have gold
-                        if (barracksUnit != null && barracksUnit.IsBuilt
-                                 && barracksUnit.CurrentAction == UnitAction.IDLE
-                                 && Gold >= Constants.COST[UnitType.ARCHER]
-                                 && mySoldiers.Count >= 5)
-                        {
-                            Train(barracksUnit, UnitType.ARCHER);
-                        }
-                        // If this barracks still exists, is idle, we need soldiers, and have gold
-                        if (barracksUnit != null && barracksUnit.IsBuilt
-                            && barracksUnit.CurrentAction == UnitAction.IDLE
-                            && Gold >= Constants.COST[UnitType.SOLDIER])
-                        {
-                            Train(barracksUnit, UnitType.SOLDIER);
-                        }
-                    }
-                    if (mySoldiers.Count + myArchers.Count > 8)
+                    TrainSoldiers();
+                    if (mySoldiers.Count + myArchers.Count > 7)
                     {
                         playerState = PlayerState.ATTACK;
                     }
@@ -486,9 +449,16 @@ namespace GameManager
                     }
                     break;
                 case PlayerState.ATTACK:
+
+
+                    // Make more workers to rev up economy
+                    TrainWorkers(10);
+
                     // For any troops, attack the enemy
                     AttackEnemy(mySoldiers);
                     AttackEnemy(myArchers);
+
+                    // Go back to building soldiers/archers
                     if (mySoldiers.Count + myArchers.Count < 3)
                     {
                         playerState = PlayerState.BuildArmy;
@@ -519,6 +489,53 @@ namespace GameManager
                     {
                         Gather(unit, mineUnit, baseUnit);
                     }
+                }
+            }
+        }
+
+        private void TrainWorkers(int numWorkers)
+        {
+            foreach (int baseNbr in myBases)
+            {
+                // Get the base unit
+                Unit baseUnit = GameManager.Instance.GetUnit(baseNbr);
+
+                // If the base exists, is idle, we need a worker, and we have gold
+                if (baseUnit != null && baseUnit.IsBuilt
+                                     && baseUnit.CurrentAction == UnitAction.IDLE
+                                     && Gold >= Constants.COST[UnitType.WORKER]
+                                     && myWorkers.Count < numWorkers)
+                {
+                    Train(baseUnit, UnitType.WORKER);
+                }
+            }
+        }
+
+        private void TrainSoldiers()
+        {
+            // For each barracks, determine if it should train a soldier or an archer
+            foreach (int barracksNbr in myBarracks)
+            {
+                int soldierChance = UnityEngine.Random.Range(0, 100);
+
+                // Get the barracks
+                Unit barracksUnit = GameManager.Instance.GetUnit(barracksNbr);
+
+                // If this barracks still exists, is idle, we need archers, and have gold
+                if (barracksUnit != null && barracksUnit.IsBuilt
+                         && barracksUnit.CurrentAction == UnitAction.IDLE
+                         && Gold >= Constants.COST[UnitType.ARCHER]
+                         && soldierChance <= 60)
+                {
+                    Train(barracksUnit, UnitType.ARCHER);
+                }
+                // If this barracks still exists, is idle, we need soldiers, and have gold
+                if (barracksUnit != null && barracksUnit.IsBuilt
+                    && barracksUnit.CurrentAction == UnitAction.IDLE
+                    && Gold >= Constants.COST[UnitType.SOLDIER]
+                    && soldierChance > 60)
+                {
+                    Train(barracksUnit, UnitType.SOLDIER);
                 }
             }
         }
