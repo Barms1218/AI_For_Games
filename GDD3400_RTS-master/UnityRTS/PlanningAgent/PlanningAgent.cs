@@ -203,7 +203,7 @@ namespace GameManager
             // For each worker
             foreach (int worker in myWorkers)
             {
-
+                Debug.Log("MAIN BASE IS: " + mainBaseNbr);
                 buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainBaseNbr).GridPosition)).ToList();
 
                 // Grab the unit we need for this function
@@ -300,7 +300,6 @@ namespace GameManager
         {
             Debug.Log("My change works.");
             Debug.Log("Branden's: " + AgentName);
-            playerState = PlayerState.BuildBase;
             Debug.Log(playerState.ToString());
             //Debug.Log("PlanningAgent::InitializeMatch");
         }
@@ -338,7 +337,7 @@ namespace GameManager
             enemyBarracks = new List<int>();
             enemyRefineries = new List<int>();
 
-
+            playerState = PlayerState.BuildBase;
         }
 
         /// <summary>
@@ -412,6 +411,10 @@ namespace GameManager
 
                     // If we don't have any barracks, build a barracks,
                     // but build a base first
+                    if (GameManager.Instance.GetUnit(mainBaseNbr) == null)
+                    {
+                        break;
+                    }
                     if (myBarracks.Count == 0 && GameManager.Instance.GetUnit(mainBaseNbr).IsBuilt)
                     {
                         BuildBuilding(UnitType.BARRACKS);
