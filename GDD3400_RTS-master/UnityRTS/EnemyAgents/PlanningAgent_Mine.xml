@@ -119,18 +119,13 @@
             </summary>
             <param name="unitType">the type of unit you want to build</param>
         </member>
-        <member name="M:GameManager.PlanningAgent.BuildBase">
-            <summary>
-            
-            </summary>
-        </member>
         <member name="M:GameManager.PlanningAgent.BuildBuilding(GameManager.EnumTypes.UnitType)">
             <summary>
             Build a building
             </summary>
             <param name="unitType"></param>
         </member>
-        <member name="M:GameManager.PlanningAgent.AttackEnemy(System.Collections.Generic.List{System.Int32})">
+        <member name="M:GameManager.PlanningAgent.AttackEnemy(System.Collections.Generic.List{System.Int32},System.Collections.Generic.Dictionary{System.String,System.Single})">
             <summary>
             Attack the enemy
             </summary>
