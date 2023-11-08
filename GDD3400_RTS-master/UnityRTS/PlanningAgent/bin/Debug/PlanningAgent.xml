@@ -125,7 +125,7 @@
             </summary>
             <param name="unitType"></param>
         </member>
-        <member name="M:GameManager.PlanningAgent.AttackEnemy(System.Collections.Generic.List{System.Int32},System.Collections.Generic.Dictionary{System.String,System.Single})">
+        <member name="M:GameManager.PlanningAgent.AttackEnemy(System.Collections.Generic.List{System.Int32})">
             <summary>
             Attack the enemy
             </summary>

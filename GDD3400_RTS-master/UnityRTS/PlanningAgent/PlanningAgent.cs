@@ -6,6 +6,7 @@ using UnityEngine;
 using System;
 using static UnityEngine.UI.GridLayoutGroup;
 using System.Xml.Serialization;
+using System.Net.Mail;
 
 /////////////////////////////////////////////////////////////////////////////
 // This is the Moron Agent
@@ -206,7 +207,7 @@ namespace GameManager
         /// Attack the enemy
         /// </summary>
         /// <param name="myTroops"></param>
-        public void AttackEnemy(List<int> myTroops, Dictionary<String, float> attackChoices)
+        public void AttackEnemy(List<int> myTroops)
         {
             // For each of my troops in this collection
             foreach (int troopNbr in myTroops)
@@ -214,38 +215,36 @@ namespace GameManager
                 // If this troop is idle, give him something to attack
                 Unit troopUnit = GameManager.Instance.GetUnit(troopNbr);
 
-                float action = attackChoices.Values.Max();
-
                 if (troopUnit.CurrentAction == UnitAction.IDLE)
                 {
 
                     // If there are soldiers to attack
-                    if (enemySoldiers.Count > 0)
+                    if (heuristics.Values.Max() == heuristics["Attack Soldiers"])
                     {
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemySoldiers[UnityEngine.Random.Range(0, enemySoldiers.Count)]));
                     }
                     // If there are archers to attack and no soldiers
-                    else if (enemyArchers.Count > 0 && enemySoldiers.Count <= 0)
+                    else if (heuristics.Values.Max() == heuristics["Attack Archers"])
                     {
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemyArchers[UnityEngine.Random.Range(0, enemyArchers.Count)]));
                     }
                     // If there are workers to attack
-                    else if (enemyWorkers.Count > 0 && enemyArchers.Count + enemySoldiers.Count + enemyBarracks.Count <= 0)
+                    else if (heuristics.Values.Max() == heuristics["Attack Workers"])
                     {
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemyWorkers[UnityEngine.Random.Range(0, enemyWorkers.Count)]));
                     }
                     // If there are barracks to attack
-                    else if (enemyBarracks.Count > 0 && enemySoldiers.Count + enemyArchers.Count <= 0)
+                    else if (heuristics.Values.Max() == heuristics["Attack Barracks"])
                     {
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemyBarracks[UnityEngine.Random.Range(0, enemyBarracks.Count)]));
                     }
                     // If there are bases to attack
-                    else if (enemyBases.Count > 0 && enemyBarracks.Count <= 0)
+                    else if (heuristics.Values.Max() == heuristics["Attack Bases"])
                     {
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemyBases[UnityEngine.Random.Range(0, enemyBases.Count)]));
                     }
                     // If there are refineries to attack
-                    else if (enemyRefineries.Count > 0 && enemyBases.Count + enemyBarracks.Count <= 0)
+                    else if (heuristics.Values.Max() == heuristics["Attack Refineries"])
                     {
                         Attack(troopUnit, GameManager.Instance.GetUnit(enemyRefineries[UnityEngine.Random.Range(0, enemyRefineries.Count)]));
                     }
@@ -377,6 +376,126 @@ namespace GameManager
         {
             UpdateGameState();
 
+            CalculateHeuristics();
+
+
+            if (mines.Count > 0)
+            {
+                mainMineNbr = mines[0];
+            }
+            else
+            {
+                mainMineNbr = -1;
+            }
+
+            switch (playerState)
+            {
+                case PlayerState.BuildBase:
+                    // If we have at least one base, assume the first one is our "main" base
+                    if (myBases.Count > 0)
+                    {
+                        mainBaseNbr = myBases[0];
+                        Debug.Log("BaseNbr " + mainBaseNbr);
+                        Debug.Log("MineNbr " + mainMineNbr);
+                    }
+
+                    if (heuristics["Build Base"] > 0.5f)
+                    {
+                        Debug.Log("BUILD BASE HEURISTIC IS:" + heuristics["Build Base"]);
+                        mainBaseNbr += 1;
+                        BuildBuilding(UnitType.BASE);
+                    }
+                    else if (heuristics["Build Barracks"] > 0.5f)
+                    {
+                        Debug.Log("BUILD BASE HEURISTIC IS:" + heuristics["Build Base"]);
+                        BuildBuilding(UnitType.BARRACKS);
+                    }
+                    else if (heuristics["Build Refinery"] > 0.5f)
+                    {
+                        Debug.Log("BUILD BARRACKS HEURISTIC IS:" + heuristics["Build Barracks"]);
+                        BuildBuilding(UnitType.REFINERY);
+                    }
+                    else if (heuristics["Train Worker"] > 0.5f)
+                    {
+                        TrainWorkers();
+                    }
+                    else if (heuristics["Gather Gold"] > 0.5f)
+                    {
+                        GatherGold(heuristics["Gather Gold"]);
+                    }
+
+
+                    if (myRefineries.Count >= MAX_REFINERIES && myBarracks.Count >= MAX_BARRACKS)
+                    {
+                        Debug.Log("CHANGING PLAYER STATE TO BUILD ARMY!!!!");
+                        playerState = PlayerState.BuildArmy;
+                    }
+
+                    //TrainWorkers();
+                    break;
+                case PlayerState.BuildArmy:
+
+                    // Build a second barracks so my army grows faster
+                    if (myBarracks.Count < 2)
+                    {
+                        BuildBuilding(UnitType.BARRACKS);
+                    }
+                    if (heuristics["Train Archer"] > 0.5f)
+                    {
+                        TrainArchers();
+                    }
+                    else if (heuristics["Train Soldier"] > 0.5f)
+                    {
+                        TrainSoldiers();
+                    }
+                    else if (heuristics["Gather Gold"] > 0.5f)
+                    {
+                        GatherGold(heuristics["Gather Gold"]);
+                    }
+
+                    if (mySoldiers.Count >= DESIRED_SOLDIERS && myArchers.Count >= DESIRED_ARCHERS)
+                    {
+                        playerState = PlayerState.ATTACK;
+                    }
+                    else if (myWorkers.Count < 3)
+                    {
+                        playerState = PlayerState.BuildBase;
+                    }
+                    break;
+                case PlayerState.ATTACK:
+                    // Make more workers to rev up economy
+                    if (heuristics["Train Worker"] > 0.5f)
+                    {
+                        TrainWorkers();
+                    }
+                    if (heuristics["Train Archer"] > 0.5f)
+                    {
+                        TrainArchers();
+                    }
+                    else if (heuristics["Train Soldier"] > 0.5f)
+                    {
+                        TrainSoldiers();
+                    }
+                    else if (heuristics["Gather Gold"] > 0.5f)
+                    {
+                        GatherGold(heuristics["Gather Gold"]);
+                    }
+                    // For any troops, attack the enemy
+                    AttackEnemy(mySoldiers);
+                    AttackEnemy(myArchers);
+
+                    // Go back to building soldiers/archers
+                    if (mySoldiers.Count + myArchers.Count < 3)
+                    {
+                        playerState = PlayerState.BuildArmy;
+                    }
+                    break;
+
+            }
+        }
+
+        private void CalculateHeuristics()
+        {
             // If there is less than one base, it is vital to build a base
             heuristics["Build Base"] = Mathf.Clamp(MAX_BASES - myBases.Count / MAX_BASES, 0, 1) *
                 Mathf.Clamp(Gold - (Constants.COST[UnitType.BASE] - 1), 0, 1);
@@ -397,126 +516,17 @@ namespace GameManager
             // Gather gold if it's below the desired amount. More urgent as gold gets low
             heuristics["Gather Gold"] = Mathf.Clamp((DESIRED_GOLD - Gold) / DESIRED_GOLD, 0, 1);
             // kill soldiers while there are any soldiers
-            //heuristics["Attack Soldiers"] = Mathf.Clamp((1 - enemySoldiers.Count) / enemySoldiers.Count, 0, 1);
+            heuristics["Attack Soldiers"] = Mathf.Clamp(0.5f * (1.0f - (enemySoldiers.Count / Mathf.Max(1, enemySoldiers.Count))), 0, 1f);
             // Kill archers while there are archers to kill
-
-            // Kill workers while there are workers to kill
-
-
-            float choice = heuristics.Values.Max();
-            if (mines.Count > 0)
-            {
-                mainMineNbr = mines[0];
-            }
-            else
-            {
-                mainMineNbr = -1;
-            }
-
-            switch (playerState)
-            {
-                case PlayerState.BuildBase:
-                    // If we have at least one base, assume the first one is our "main" base
-                    if (myBases.Count > 0)
-                    {
-                        mainBaseNbr = myBases[0];
-                        Debug.Log("BaseNbr " + mainBaseNbr);
-                        Debug.Log("MineNbr " + mainMineNbr);
-                    }
-                    
-                    if (choice == heuristics["Build Base"])
-                    {
-                        Debug.Log("BUILD BASE HEURISTIC IS:" + heuristics["Build Base"]);
-                        mainBaseNbr += 1;
-                        BuildBuilding(UnitType.BASE);
-                    }
-                    else if (choice == heuristics["Build Barracks"])
-                    {
-                        Debug.Log("BUILD BASE HEURISTIC IS:" + heuristics["Build Base"]);
-                        BuildBuilding(UnitType.BARRACKS);
-                    }
-                    else if (choice == heuristics["Build Refinery"])
-                    {
-                        Debug.Log("BUILD BARRACKS HEURISTIC IS:" + heuristics["Build Barracks"]);
-                        BuildBuilding(UnitType.REFINERY);
-                    }
-                    else if (choice == heuristics["Train Worker"])
-                    {
-                        TrainWorkers();
-                    }
-                    else if (choice == heuristics["Gather Gold"])
-                    {
-                        GatherGold(choice);
-                    }
-
-
-                    if (myRefineries.Count >= MAX_REFINERIES && myBarracks.Count >= MAX_BARRACKS)
-                    {
-                        Debug.Log("CHANGING PLAYER STATE TO BUILD ARMY!!!!");
-                        playerState = PlayerState.BuildArmy;
-                    }
-
-                    //TrainWorkers();
-                    break;
-                case PlayerState.BuildArmy:
-
-                    // Build a second barracks so my army grows faster
-                    if (myBarracks.Count < 2)
-                    {
-                        BuildBuilding(UnitType.BARRACKS);
-                    }
-                    if (choice == heuristics["Train Archer"])
-                    {
-                        TrainArchers();
-                    }
-                    else if (choice == heuristics["Train Soldier"])
-                    {
-                        TrainSoldiers();
-                    }
-                    else if (choice == heuristics["Gather Gold"])
-                    {
-                        GatherGold(choice);
-                    }
-
-                    if (mySoldiers.Count + myArchers.Count > 7)
-                    {
-                        playerState = PlayerState.ATTACK;
-                    }
-                    else if (myWorkers.Count < 3)
-                    {
-                        playerState = PlayerState.BuildBase;
-                    }
-                    break;
-                case PlayerState.ATTACK:
-                    // Make more workers to rev up economy
-                    if (choice == heuristics["Train Worker"])
-                    {
-                        TrainWorkers();
-                    }
-                    if (choice == heuristics["Train Archer"])
-                    {
-                        TrainArchers();
-                    }
-                    else if (choice == heuristics["Train Soldier"])
-                    {
-                        TrainSoldiers();
-                    }
-                    else if (choice == heuristics["Gather Gold"])
-                    {
-                        GatherGold(choice);
-                    }
-                    // For any troops, attack the enemy
-                    AttackEnemy(mySoldiers, heuristics);
-                    AttackEnemy(myArchers, heuristics);
-
-                    // Go back to building soldiers/archers
-                    if (mySoldiers.Count + myArchers.Count < 3)
-                    {
-                        playerState = PlayerState.BuildArmy;
-                    }
-                    break;
-
-            }
+            heuristics["Attack Archers"] = Mathf.Clamp(0.5f * (1.0f - (enemyArchers.Count / Mathf.Max(1, enemyArchers.Count))), 0f, 1f);
+            // Kill workers while there are workers to kill. Lower maximum priority than enemy troops.
+            heuristics["Attack Workers"] = Mathf.Clamp(0.5f * (1.0f - (enemyWorkers.Count / Mathf.Max(1, enemyWorkers.Count))), 0f, 1f);
+            // Attack enemy Bases
+            heuristics["Attack Bases"] = Mathf.Clamp(0.9f * (1.0f - (enemyBases.Count / Mathf.Max(1, enemyBases.Count))), 0f, 0.9f);
+            // Attack enemy Barracks
+            heuristics["Attack Barracks"] = Mathf.Clamp(0.5f * (1.0f - (enemyBases.Count / Mathf.Max(1, enemyBases.Count))), 0f, 1f);
+            // Attack enemy Refineries
+            heuristics["Attack Refineries"] = Mathf.Clamp(0.5f * (1.0f - (enemyBases.Count / Mathf.Max(1, enemyBases.Count))), 0f, 0.5f);
         }
 
         private void GatherGold(float choice)
