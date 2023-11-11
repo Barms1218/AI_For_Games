@@ -289,6 +289,8 @@ namespace GameManager
             mines = new List<int>();
             mines = GameManager.Instance.GetUnitNbrsOfType(UnitType.MINE, AgentNbr);
 
+            FindClosestMine();
+
             myWorkers = new List<int>();
             mySoldiers = new List<int>();
             myArchers = new List<int>();
@@ -351,6 +353,7 @@ namespace GameManager
             {
                 mainBaseNbr = myBases[0];
             }
+
             CalculateHeuristics();
 
             float choice = heuristics.Values.Max();
@@ -467,12 +470,6 @@ namespace GameManager
                 // Grab the unit we need for this function
                 Unit unit = GameManager.Instance.GetUnit(worker);
 
-                // Workers will look for the closest mine every state update
-                if (myWorkers.Count > 0)
-                {
-                    FindClosestMine(unit);
-                }
-
                 // Make sure this unit actually exists and is idle
                 if (unit != null && unit.CurrentAction == UnitAction.IDLE && mainBaseNbr >= 0 && mainMineNbr >= 0)
                 {
@@ -552,15 +549,12 @@ namespace GameManager
         /// 
         /// </summary>
         /// <returns></returns>
-        private void FindClosestMine(Unit worker)
+        private void FindClosestMine()
         {
-            
-            if (worker != null)
+
+            foreach (int mine in mines)
             {
-                foreach (int mine in mines)
-                {
-                    mines = mines.OrderBy(pos => Vector3Int.Distance(worker.GridPosition, GameManager.Instance.GetUnit(mine).GridPosition)).ToList();
-                }
+                mines = mines.OrderBy(pos => Vector3Int.Distance(GameManager.Instance.GetUnit(myWorkers[0]).GridPosition, GameManager.Instance.GetUnit(mine).GridPosition)).ToList();
             }
         }
 
