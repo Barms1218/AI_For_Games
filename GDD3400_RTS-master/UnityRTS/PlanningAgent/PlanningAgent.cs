@@ -54,6 +54,7 @@ namespace GameManager
         /// </summary>
         private int mainMineNbr { get; set; }
 
+
         /// <summary>
         /// My primary base number
         /// </summary>
@@ -289,7 +290,7 @@ namespace GameManager
             mines = new List<int>();
             mines = GameManager.Instance.GetUnitNbrsOfType(UnitType.MINE, AgentNbr);
 
-            FindClosestMine();
+            
 
             myWorkers = new List<int>();
             mySoldiers = new List<int>();
@@ -306,6 +307,7 @@ namespace GameManager
             enemyRefineries = new List<int>();
 
             playerState = PlayerState.BuildBase;
+            
         }
 
         /// <summary>
@@ -360,7 +362,7 @@ namespace GameManager
             Debug.LogWarning("THE MAXIMUM KEY IS: " + heuristics.Keys.Max() + " AND ITS VALUE IS: " + choice);
             if (mines.Count > 0)
             {
-                mainMineNbr = mines[0];
+                mainMineNbr = FindClosestMineToWorker(myWorkers[0]);
             }
             else
             {
@@ -474,7 +476,7 @@ namespace GameManager
                 if (unit != null && unit.CurrentAction == UnitAction.IDLE && mainBaseNbr >= 0 && mainMineNbr >= 0)
                 {
                     // Grab the mine
-                    Unit mineUnit = GameManager.Instance.GetUnit(mainMineNbr);
+                    Unit mineUnit = GameManager.Instance.GetUnit(FindClosestMineToWorker(worker));
                     Unit baseUnit = GameManager.Instance.GetUnit(mainBaseNbr);
                     if (mineUnit != null && baseUnit != null && mineUnit.Health > 0)
                     {
@@ -545,17 +547,30 @@ namespace GameManager
 
         #region Private Methods
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        private void FindClosestMine()
+        private int FindClosestMineToWorker(int workerNbr)
         {
+            int closestMineNbr = -1;
+            float minDistance = float.MaxValue;
 
-            foreach (int mine in mines)
+            // Get the position of the initial worker
+            Vector3Int workerPosition = GameManager.Instance.GetUnit(workerNbr).GridPosition;
+
+            // Find the closest mine
+            foreach (int mineNbr in mines)
             {
-                mines = mines.OrderBy(pos => Vector3Int.Distance(GameManager.Instance.GetUnit(myWorkers[0]).GridPosition, GameManager.Instance.GetUnit(mine).GridPosition)).ToList();
+                Unit mineUnit = GameManager.Instance.GetUnit(mineNbr);
+                if (mineUnit != null && mineUnit.Health > 0)
+                {
+                    float distance = Vector3Int.Distance(workerPosition, mineUnit.GridPosition);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        closestMineNbr = mineNbr;
+                    }
+                }
             }
+
+            return closestMineNbr;
         }
 
         #endregion

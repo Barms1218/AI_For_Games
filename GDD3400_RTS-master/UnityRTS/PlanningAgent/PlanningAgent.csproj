@@ -35,7 +35,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>BrandenArms.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>BrandenA.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GameManager, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -249,6 +249,7 @@
     <None Include="AJT.snk" />
     <None Include="AjT2.snk" />
     <None Include="AjT3.snk" />
+    <None Include="BrandenA.snk" />
     <None Include="BrandenArms.snk" />
     <None Include="CKB.snk" />
     <None Include="CkB3.snk" />

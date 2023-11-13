@@ -161,11 +161,5 @@
             Update the GameManager - called once per frame
             </summary>
         </member>
-        <member name="M:GameManager.PlanningAgent.FindClosestMine">
-            <summary>
-            
-            </summary>
-            <returns></returns>
-        </member>
     </members>
 </doc>
