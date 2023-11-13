@@ -161,10 +161,44 @@
             Update the GameManager - called once per frame
             </summary>
         </member>
-        <member name="M:GameManager.PlanningAgent.FindClosestMine(GameManager.GameElements.Unit)">
+        <member name="M:GameManager.PlanningAgent.DoThing(System.String)">
             <summary>
-            
+            A method that takes a value and has the agents do the appropriate action based 
+            on it.
             </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:GameManager.PlanningAgent.CalculateHeuristics">
+            <summary>
+            How the actions are calculated
+            State-Based calculations done as part of the heuristics calculations
+            </summary>
+        </member>
+        <member name="M:GameManager.PlanningAgent.GatherGold">
+            <summary>
+            Gather gold at the closest mine and deliver it to the main base.
+            </summary>
+        </member>
+        <member name="M:GameManager.PlanningAgent.TrainWorkers">
+            <summary>
+            Train workers if the base is idle and not at max workers
+            </summary>
+        </member>
+        <member name="M:GameManager.PlanningAgent.TrainSoldiers">
+            <summary>
+            Train soldiers if the barracks is idle
+            </summary>
+        </member>
+        <member name="M:GameManager.PlanningAgent.TrainArchers">
+            <summary>
+            Train archers if the barracks is idle
+            </summary>
+        </member>
+        <member name="M:GameManager.PlanningAgent.FindClosestMineToWorker(System.Int32)">
+            <summary>
+            Find the mine closest to the worker
+            </summary>
+            <param name="workerNbr"></param>
             <returns></returns>
         </member>
     </members>
