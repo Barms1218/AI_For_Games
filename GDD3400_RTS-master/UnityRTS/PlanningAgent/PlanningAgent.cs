@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using GameManager.EnumTypes;
 using GameManager.GameElements;
@@ -22,13 +22,13 @@ namespace GameManager
     ///</summary> 
     public class PlanningAgent : Agent
     {
-        private const int DESIRED_WORKERS = 10;
-        private const int MAX_BASES = 1;
-        private const int MAX_BARRACKS = 2;
-        private const int MAX_REFINERIES = 1;
-        private const int DESIRED_SOLDIERS = 30;
-        private const int DESIRED_ARCHERS = 30;
-        private const int DESIRED_GOLD = 3000;
+        private const float DESIRED_WORKERS = 10;
+        private const float MAX_BASES = 1;
+        private const float MAX_BARRACKS = 5;
+        private const float MAX_REFINERIES = 1;
+        private const float DESIRED_SOLDIERS = 30;
+        private const float DESIRED_ARCHERS = 20;
+        private const float DESIRED_GOLD = 3000;
 
         #region Private Data
 
@@ -221,7 +221,7 @@ namespace GameManager
                 {
                     Attack(troopUnit, GameManager.Instance.GetUnit(enemies[UnityEngine.Random.Range(0, enemies.Count)]));
                 }
-            } 
+            }
         }
         #endregion
 
@@ -270,6 +270,7 @@ namespace GameManager
             {
                 {"Gather Gold", 0f },
                 {"Build Base", 0f },
+                {"Train Worker", 0f },
                 {"Build Barracks", 0f },
                 {"Build Refinery", 0f },
                 {"Train Soldier", 0f },
@@ -279,8 +280,7 @@ namespace GameManager
                 {"Attack Workers", 0f },
                 {"Attack Bases", 0f },
                 {"Attack Barracks", 0f },
-                {"Attack Refineries", 0f },
-                { "Train Worker", 0f }
+                {"Attack Refineries", 0f }
             };
             // Set the main mine and base to "non-existent"
             mainMineNbr = -1;
@@ -290,7 +290,7 @@ namespace GameManager
             mines = new List<int>();
             mines = GameManager.Instance.GetUnitNbrsOfType(UnitType.MINE, AgentNbr);
 
-            
+
 
             myWorkers = new List<int>();
             mySoldiers = new List<int>();
@@ -307,7 +307,7 @@ namespace GameManager
             enemyRefineries = new List<int>();
 
             playerState = PlayerState.BuildBase;
-            
+
         }
 
         /// <summary>
@@ -351,16 +351,13 @@ namespace GameManager
         {
             UpdateGameState();
 
+            // Pick the first base built as your main base
             if (myBases.Count > 0)
             {
                 mainBaseNbr = myBases[0];
             }
-
-            CalculateHeuristics();
-
-            float choice = heuristics.Values.Max();
-            Debug.LogWarning("THE MAXIMUM KEY IS: " + heuristics.Keys.Max() + " AND ITS VALUE IS: " + choice);
-            if (mines.Count > 0)
+            // Pick the main mine for your faction
+            if (mainMineNbr == -1 && mines.Count > 0 && myWorkers.Count > 0)
             {
                 mainMineNbr = FindClosestMineToWorker(myWorkers[0]);
             }
@@ -369,15 +366,39 @@ namespace GameManager
                 mainMineNbr = -1;
             }
 
+            // Heuristic calculations handled in separate method because it's cleaner.
+            CalculateHeuristics();
+
+            // How the agents decide to change states.
+            if (myBarracks.Count + myRefineries.Count > 0)
+            {
+                playerState = PlayerState.BuildArmy;
+            }
+            else if (mySoldiers.Count + myArchers.Count >= 20)
+            {
+                playerState = PlayerState.ATTACK;
+            }
+
+
+            Debug.LogWarning(playerState.ToString());
+
+
             foreach (KeyValuePair<String, float> item in heuristics)
             {
-                if (item.Value > 0.5f)
+                if (item.Value > 0.25f)
                 {
+                    Debug.LogWarning("ACTION: " + item + " AND ITS VALUE IS: " + item.Value);
+                    Debug.LogWarning(((DESIRED_WORKERS - myWorkers.Count) / DESIRED_WORKERS));
                     DoThing(item.Key);
                 }
             }
         }
 
+        /// <summary>
+        /// A method that takes a value and has the agents do the appropriate action based 
+        /// on it.
+        /// </summary>
+        /// <param name="value"></param>
         private void DoThing(string value)
         {
             switch (value)
@@ -387,6 +408,9 @@ namespace GameManager
                     break;
                 case "Gather Gold":
                     GatherGold();
+                    break;
+                case "Train Worker":
+                    TrainWorkers();
                     break;
                 case "Build Barracks":
                     BuildBuilding(UnitType.BARRACKS);
@@ -399,9 +423,6 @@ namespace GameManager
                     break;
                 case "Train Archer":
                     TrainArchers();
-                    break;
-                case "Train Worker":
-                    TrainWorkers();
                     break;
                 case "Attack Soldier":
                     AttackEnemy(mySoldiers, enemySoldiers);
@@ -430,40 +451,63 @@ namespace GameManager
             }
         }
 
+        /// <summary>
+        /// How the actions are calculated
+        /// State-Based calculations done as part of the heuristics calculations
+        /// </summary>
         private void CalculateHeuristics()
         {
+            // State-Based Values. Gold and Bases not included because those are top priority always.
+            float trainWorkerValue = playerState == PlayerState.BuildBase ? 1.0f : 0.75f;
+            float trainSoldierValue = playerState == PlayerState.BuildArmy ? 1.0f : 0.7f;
+            float trainArcherValue = playerState == PlayerState.BuildArmy ? 1.0f : 0.6f;
+            float buildBarracksValue = playerState == PlayerState.BuildBase || playerState == PlayerState.BuildArmy ? 1.0f : 0.75f;
+            float buildRefineryValue = playerState == PlayerState.BuildBase || playerState == PlayerState.ATTACK ? 1.0f : 0.5f;
+            float attackBases = playerState == PlayerState.ATTACK ? 1.0f : 0.6f;
+            float attackBarracks = playerState == PlayerState.ATTACK ? 1.0f : 0.65f;
+            float attackRefineries = playerState == PlayerState.ATTACK ? 1.0f : 0.55f;
+            float attackWorkers = playerState == PlayerState.ATTACK ? 1.0f : 0.70f;
+            float attackSoldiers = playerState == PlayerState.ATTACK ? 1.0f : 0.75f;
+            float attackArchers = playerState == PlayerState.ATTACK ? 1.0f : 0.75f;
+
+
             // If there is less than one base, it is vital to build a base
             heuristics["Build Base"] = Mathf.Clamp((MAX_BASES - myBases.Count) / MAX_BASES, 0, 1) *
                 Mathf.Clamp(Gold - (Constants.COST[UnitType.BASE] - 1), 0, 1);
             // Build barracks
-            heuristics["Build Barracks"] = Mathf.Clamp((MAX_BARRACKS - myBarracks.Count) / MAX_BARRACKS, 0, 1) *
+            heuristics["Build Barracks"] = Mathf.Clamp((MAX_BARRACKS - myBarracks.Count) / MAX_BARRACKS, 0, buildBarracksValue) *
                 Mathf.Clamp(Gold - (Constants.COST[UnitType.BARRACKS] - 1), 0, 1);
             // Refineries are least important, max value is less to match
-            heuristics["Build Refinery"] = Mathf.Clamp((MAX_REFINERIES - myRefineries.Count) / MAX_REFINERIES, 0, 1) *
+            heuristics["Build Refinery"] = Mathf.Clamp((MAX_REFINERIES - myRefineries.Count) / MAX_REFINERIES, 0, buildRefineryValue) *
                 Mathf.Clamp(Gold - (Constants.COST[UnitType.REFINERY] - 1), 0, 1f);
+            Debug.LogWarning(Mathf.Clamp((DESIRED_WORKERS - myWorkers.Count) / DESIRED_WORKERS, 0f, trainWorkerValue) *
+                Mathf.Clamp(Gold - (Constants.COST[UnitType.WORKER] - 1), 0, 1f) + " worker stuff");
             heuristics["Train Worker"] = Mathf.Clamp((DESIRED_WORKERS - myWorkers.Count) / DESIRED_WORKERS, 0, 1) *
                 Mathf.Clamp(Gold - (Constants.COST[UnitType.WORKER] - 1), 0, 1f);
-            heuristics["Train Soldier"] = Mathf.Clamp((DESIRED_SOLDIERS - mySoldiers.Count) / DESIRED_SOLDIERS, 0, 1) *
+            heuristics["Train Soldier"] = Mathf.Clamp((DESIRED_SOLDIERS - mySoldiers.Count) / DESIRED_SOLDIERS, 0, trainSoldierValue) *
                 Mathf.Clamp(Gold - (Constants.COST[UnitType.SOLDIER] - 1), 0, 1);
             // Train archers if not at the max
-            heuristics["Train Archer"] = Mathf.Clamp((DESIRED_ARCHERS - myArchers.Count) / DESIRED_ARCHERS, 0, 1) *
+            heuristics["Train Archer"] = Mathf.Clamp((DESIRED_ARCHERS - myArchers.Count) / DESIRED_ARCHERS, 0, trainArcherValue) *
                 Mathf.Clamp(Gold - (Constants.COST[UnitType.ARCHER] - 1), 0, 1);
             // Gather gold if it's below the desired amount. More urgent as gold gets low
             heuristics["Gather Gold"] = Mathf.Clamp((DESIRED_GOLD - Gold) / DESIRED_GOLD, 0, 1);
             // kill soldiers while there are any soldiers
-            heuristics["Attack Soldiers"] = Mathf.Clamp(0.5f * (1.0f - (enemySoldiers.Count / Mathf.Max(1, enemySoldiers.Count))), 0, 1f);
+            heuristics["Attack Soldiers"] = Mathf.Clamp((enemySoldiers.Count / Mathf.Max(1, enemySoldiers.Count)), 0, attackSoldiers);
             // Kill archers while there are archers to kill
-            heuristics["Attack Archers"] = Mathf.Clamp(0.5f * (1.0f - (enemyArchers.Count / Mathf.Max(1, enemyArchers.Count))), 0f, 1f);
+            heuristics["Attack Archers"] = Mathf.Clamp(((enemyArchers.Count / Mathf.Max(1, enemyArchers.Count))), 0f, attackArchers);
             // Kill workers while there are workers to kill. Lower maximum priority than enemy troops.
-            heuristics["Attack Workers"] = Mathf.Clamp(0.5f * (1.0f - (enemyWorkers.Count / Mathf.Max(1, enemyWorkers.Count))), 0f, 1f);
+            heuristics["Attack Workers"] = Mathf.Clamp(((enemyWorkers.Count / Mathf.Max(1, enemyWorkers.Count))), 0f, attackWorkers);
             // Attack enemy Bases
-            heuristics["Attack Bases"] = Mathf.Clamp(0.9f * (1.0f - (enemyBases.Count / Mathf.Max(1, enemyBases.Count))), 0f, 0.9f);
+            heuristics["Attack Bases"] = Mathf.Clamp(((enemyBases.Count / Mathf.Max(1, enemyBases.Count))), 0f, attackBases);
             // Attack enemy Barracks
-            heuristics["Attack Barracks"] = Mathf.Clamp(0.5f * (1.0f - (enemyBarracks.Count / Mathf.Max(1, enemyBarracks.Count))), 0f, 1f);
+            heuristics["Attack Barracks"] = Mathf.Clamp(((enemyBarracks.Count / Mathf.Max(1, enemyBarracks.Count))), 0f, attackBarracks);
             // Attack enemy Refineries
-            heuristics["Attack Refineries"] = Mathf.Clamp(0.5f * (1.0f - (enemyRefineries.Count / Mathf.Max(1, enemyRefineries.Count))), 0f, 0.5f);
+            heuristics["Attack Refineries"] = Mathf.Clamp((enemyRefineries.Count / Mathf.Max(1, enemyRefineries.Count)), 0f, attackRefineries);
         }
 
+        /// <summary>
+        /// Gather gold at the closest mine and deliver it to the main base.
+        /// </summary>
         private void GatherGold()
         {
             // For each worker
@@ -486,6 +530,9 @@ namespace GameManager
             }
         }
 
+        /// <summary>
+        /// Train workers if the base is idle and not at max workers
+        /// </summary>
         private void TrainWorkers()
         {
             foreach (int baseNbr in myBases)
@@ -496,24 +543,24 @@ namespace GameManager
                 // If the base exists, is idle, we need a worker, and we have gold
                 if (baseUnit != null && baseUnit.IsBuilt
                                      && baseUnit.CurrentAction == UnitAction.IDLE
-                                     && Gold >= Constants.COST[UnitType.WORKER]
-                                     && myWorkers.Count < DESIRED_WORKERS)
+                                     && Gold >= Constants.COST[UnitType.WORKER])
                 {
                     Train(baseUnit, UnitType.WORKER);
                 }
             }
         }
 
+        /// <summary>
+        /// Train soldiers if the barracks is idle
+        /// </summary>
         private void TrainSoldiers()
         {
             // For each barracks, determine if it should train a soldier or an archer
             foreach (int barracksNbr in myBarracks)
             {
-                int soldierChance = UnityEngine.Random.Range(0, 100);
-
                 // Get the barracks
                 Unit barracksUnit = GameManager.Instance.GetUnit(barracksNbr);
-                
+
                 // If this barracks still exists, is idle, we need soldiers, and have gold
                 if (barracksUnit != null && barracksUnit.IsBuilt
                     && barracksUnit.CurrentAction == UnitAction.IDLE
@@ -524,12 +571,13 @@ namespace GameManager
             }
         }
 
+        /// <summary>
+        /// Train archers if the barracks is idle
+        /// </summary>
         private void TrainArchers()
         {
             foreach (int barracksNbr in myBarracks)
             {
-                int soldierChance = UnityEngine.Random.Range(0, 100);
-
                 // Get the barracks
                 Unit barracksUnit = GameManager.Instance.GetUnit(barracksNbr);
 
@@ -547,6 +595,11 @@ namespace GameManager
 
         #region Private Methods
 
+        /// <summary>
+        /// Find the mine closest to the worker
+        /// </summary>
+        /// <param name="workerNbr"></param>
+        /// <returns></returns>
         private int FindClosestMineToWorker(int workerNbr)
         {
             int closestMineNbr = -1;
