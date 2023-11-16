@@ -130,9 +130,22 @@ namespace GameManager
         /// </summary>
         private List<Vector3Int> buildPositions { get; set; }
 
+        /// <summary>
+        /// The values that will help the agent make decisions
+        /// </summary>
         private Dictionary<String, float> heuristics;
 
+        /// <summary>
+        /// The values that will contribute to learning between
+        /// rounds.
+        /// </summary>
         private Dictionary<float, float> learningValues;
+
+        /// <summary>
+        /// Keep track of the enemy's peak numbers
+        /// such as maximum soldiers, workers, etc.
+        /// </summary>
+        private Dictionary<String, int> enemyStats;
 
         /// <summary>
         /// The state that the player's forces are in.
@@ -240,10 +253,12 @@ namespace GameManager
             CalculateLearningValues();
 
             Debug.Log("PlanningAgent::Learn");
-            Log("value 1");
-            Log("value 2");
-            Log("value 3a, 3b");
-            Log("value 4");
+            Log(learningValues[0].ToString());
+            Log(learningValues[1].ToString());
+            Log(learningValues[2].ToString());
+            Log(learningValues[3].ToString());
+            Log(learningValues[4].ToString());
+            Log(learningValues[5].ToString());
         }
 
         /// <summary>
@@ -293,6 +308,17 @@ namespace GameManager
                 {DESIRED_GOLD, 0f },
                 {MAX_BARRACKS, 0f },
                 {MAX_BASES, 0f }
+            };
+
+            // Re-Initialize enemy stats
+            enemyStats = new Dictionary<String, int>()
+            {
+                {"Soldier Count", 0 },
+                {"Archer Count", 0 },
+                {"Worker Count", 0 },
+                {"Base Count", 0 },
+                {"Barracks Count", 0 },
+                {"Refinery Count", 0 }
             };
 
             // Set the main mine and base to "non-existent"
@@ -404,6 +430,36 @@ namespace GameManager
                     Debug.LogWarning(((DESIRED_WORKERS - myWorkers.Count) / DESIRED_WORKERS));
                     DoThing(item.Key);
                 }
+            }
+
+            TrackEnemyValues();
+        }
+
+        private void TrackEnemyValues()
+        {
+            if (enemyWorkers.Count > enemyStats["Worker Count"])
+            {
+                enemyStats["Worker Count"] = enemyWorkers.Count;
+            }
+            if (enemySoldiers.Count > enemyStats["Soldier Count"])
+            {
+                enemyStats["Soldier Count"] = enemySoldiers.Count;
+            }
+            if (enemyArchers.Count > enemyStats["Archer Count"])
+            {
+                enemyStats["Archer Count"] = enemyArchers.Count;
+            }
+            if (enemyBases.Count > enemyStats["Base Count"])
+            {
+                enemyStats["Base Count"] = enemyBases.Count;
+            }
+            if (enemyBarracks.Count > enemyStats["Barracks Count"])
+            {
+                enemyStats["Barracks Count"] = enemyBarracks.Count;     
+            }
+            if (enemyRefineries.Count > enemyStats["Refinery Count"])
+            {
+                enemyStats["Refinery Count"] = enemyRefineries.Count;
             }
         }
 
