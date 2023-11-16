@@ -22,13 +22,13 @@ namespace GameManager
     ///</summary> 
     public class PlanningAgent : Agent
     {
-        private const float DESIRED_WORKERS = 10;
-        private const float MAX_BASES = 1;
-        private const float MAX_BARRACKS = 5;
-        private const float MAX_REFINERIES = 1;
-        private const float DESIRED_SOLDIERS = 30;
-        private const float DESIRED_ARCHERS = 20;
-        private const float DESIRED_GOLD = 3000;
+        private float DESIRED_WORKERS = 10;
+        private float MAX_BASES = 1;
+        private float MAX_BARRACKS = 1;
+        private float MAX_REFINERIES = 1;
+        private float DESIRED_SOLDIERS = 10;
+        private float DESIRED_ARCHERS = 12;
+        private float DESIRED_GOLD = 2000;
 
         #region Private Data
 
@@ -131,6 +131,8 @@ namespace GameManager
         private List<Vector3Int> buildPositions { get; set; }
 
         private Dictionary<String, float> heuristics;
+
+        private Dictionary<float, float> learningValues;
 
         /// <summary>
         /// The state that the player's forces are in.
@@ -235,7 +237,9 @@ namespace GameManager
         {
             Debug.Log("Nbr Wins: " + AgentNbrWins);
 
-            //Debug.Log("PlanningAgent::Learn");
+            CalculateLearningValues();
+
+            Debug.Log("PlanningAgent::Learn");
             Log("value 1");
             Log("value 2");
             Log("value 3a, 3b");
@@ -248,10 +252,7 @@ namespace GameManager
         /// </summary>
         public override void InitializeMatch()
         {
-            Debug.Log("My change works.");
-            Debug.Log("Branden's: " + AgentName);
-            Debug.Log(playerState.ToString());
-            //Debug.Log("PlanningAgent::InitializeMatch");
+            Debug.Log("PlanningAgent::InitializeMatch");
         }
 
         /// <summary>
@@ -282,6 +283,18 @@ namespace GameManager
                 {"Attack Barracks", 0f },
                 {"Attack Refineries", 0f }
             };
+
+            // Initialize the learning values dictionary
+            learningValues = new Dictionary<float, float>()
+            {
+                {DESIRED_WORKERS, 0f },
+                {DESIRED_SOLDIERS, 0f },
+                {DESIRED_ARCHERS, 0f },
+                {DESIRED_GOLD, 0f },
+                {MAX_BARRACKS, 0f },
+                {MAX_BASES, 0f }
+            };
+
             // Set the main mine and base to "non-existent"
             mainMineNbr = -1;
             mainBaseNbr = -1;
@@ -624,6 +637,14 @@ namespace GameManager
             }
 
             return closestMineNbr;
+        }
+
+        private float CalculateLearningValues()
+        {
+            float value = 0f;
+
+
+            return value;
         }
 
         #endregion
