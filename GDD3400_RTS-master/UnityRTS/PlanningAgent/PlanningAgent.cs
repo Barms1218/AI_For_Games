@@ -126,6 +126,11 @@ namespace GameManager
         private List<int> enemyRefineries { get; set; }
 
         /// <summary>
+        /// The amount of the enemy's gold
+        /// </summary>
+        private int enemyGold { get; set; }
+
+        /// <summary>
         /// List of the possible build positions for a 3x3 unit
         /// </summary>
         private List<Vector3Int> buildPositions { get; set; }
@@ -142,10 +147,16 @@ namespace GameManager
         private Dictionary<float, float> learningValues;
 
         /// <summary>
+        /// Keep track of the peak values for each 
+        /// of my learning values, per round.
+        /// </summary>
+        private Dictionary<String, float> myStats;
+
+        /// <summary>
         /// Keep track of the enemy's peak numbers
         /// such as maximum soldiers, workers, etc.
         /// </summary>
-        private Dictionary<String, int> enemyStats;
+        private Dictionary<String, float> enemyStats;
 
         /// <summary>
         /// The state that the player's forces are in.
@@ -307,18 +318,32 @@ namespace GameManager
                 {DESIRED_ARCHERS, 0f },
                 {DESIRED_GOLD, 0f },
                 {MAX_BARRACKS, 0f },
-                {MAX_BASES, 0f }
+                {MAX_BASES, 0f },
+                {MAX_REFINERIES, 0f }
             };
 
-            // Re-Initialize enemy stats
-            enemyStats = new Dictionary<String, int>()
+            // Re-Initialize enemy stats for the round
+            enemyStats = new Dictionary<String, float>()
             {
                 {"Soldier Count", 0 },
                 {"Archer Count", 0 },
                 {"Worker Count", 0 },
                 {"Base Count", 0 },
                 {"Barracks Count", 0 },
-                {"Refinery Count", 0 }
+                {"Refinery Count", 0 },
+                {"Gold Count", 0 }
+            };
+
+            // Re-Initialize my stats for the round 
+            myStats = new Dictionary<String, float>()
+            {
+                {"Soldier Count", 0 },
+                {"Archer Count", 0 },
+                {"Worker Count", 0 },
+                {"Base Count", 0 },
+                {"Barracks Count", 0 },
+                {"Refinery Count", 0 },
+                {"Gold Count", 0 }
             };
 
             // Set the main mine and base to "non-existent"
@@ -328,7 +353,6 @@ namespace GameManager
             // Initialize all of the unit lists
             mines = new List<int>();
             mines = GameManager.Instance.GetUnitNbrsOfType(UnitType.MINE, AgentNbr);
-
 
 
             myWorkers = new List<int>();
@@ -379,6 +403,7 @@ namespace GameManager
                 enemyBarracks = GameManager.Instance.GetUnitNbrsOfType(UnitType.BARRACKS, enemyAgentNbr);
                 enemyBases = GameManager.Instance.GetUnitNbrsOfType(UnitType.BASE, enemyAgentNbr);
                 enemyRefineries = GameManager.Instance.GetUnitNbrsOfType(UnitType.REFINERY, enemyAgentNbr);
+                enemyGold = GameManager.Instance.GetAgent(enemyAgentNbr).Gold;
                 Debug.Log("<color=red>Enemy gold</color>: " + GameManager.Instance.GetAgent(enemyAgentNbr).Gold);
             }
         }
@@ -433,34 +458,7 @@ namespace GameManager
             }
 
             TrackEnemyValues();
-        }
-
-        private void TrackEnemyValues()
-        {
-            if (enemyWorkers.Count > enemyStats["Worker Count"])
-            {
-                enemyStats["Worker Count"] = enemyWorkers.Count;
-            }
-            if (enemySoldiers.Count > enemyStats["Soldier Count"])
-            {
-                enemyStats["Soldier Count"] = enemySoldiers.Count;
-            }
-            if (enemyArchers.Count > enemyStats["Archer Count"])
-            {
-                enemyStats["Archer Count"] = enemyArchers.Count;
-            }
-            if (enemyBases.Count > enemyStats["Base Count"])
-            {
-                enemyStats["Base Count"] = enemyBases.Count;
-            }
-            if (enemyBarracks.Count > enemyStats["Barracks Count"])
-            {
-                enemyStats["Barracks Count"] = enemyBarracks.Count;     
-            }
-            if (enemyRefineries.Count > enemyStats["Refinery Count"])
-            {
-                enemyStats["Refinery Count"] = enemyRefineries.Count;
-            }
+            TrackAgentValues();
         }
 
         /// <summary>
@@ -695,6 +693,53 @@ namespace GameManager
             return closestMineNbr;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        private void TrackAgentValues()
+        {
+
+        }
+
+        /// <summary>
+        /// Keep track of the enemy's values for comparison
+        /// </summary>
+        private void TrackEnemyValues()
+        {
+            if (enemyWorkers.Count > enemyStats["Worker Count"])
+            {
+                enemyStats["Worker Count"] = enemyWorkers.Count;
+            }
+            if (enemySoldiers.Count > enemyStats["Soldier Count"])
+            {
+                enemyStats["Soldier Count"] = enemySoldiers.Count;
+            }
+            if (enemyArchers.Count > enemyStats["Archer Count"])
+            {
+                enemyStats["Archer Count"] = enemyArchers.Count;
+            }
+            if (enemyBases.Count > enemyStats["Base Count"])
+            {
+                enemyStats["Base Count"] = enemyBases.Count;
+            }
+            if (enemyBarracks.Count > enemyStats["Barracks Count"])
+            {
+                enemyStats["Barracks Count"] = enemyBarracks.Count;
+            }
+            if (enemyRefineries.Count > enemyStats["Refinery Count"])
+            {
+                enemyStats["Refinery Count"] = enemyRefineries.Count;
+            }
+            if (enemyGold > enemyStats["Gold Count"])
+            {
+                enemyStats["Gold Count"] = enemyGold;
+            }
+        }
+
+        /// <summary>
+        /// Run calculations to provide value for match
+        /// </summary>
+        /// <returns></returns>
         private float CalculateLearningValues()
         {
             float value = 0f;
