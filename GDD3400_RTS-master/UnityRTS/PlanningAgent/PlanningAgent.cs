@@ -128,7 +128,7 @@ namespace GameManager
         /// <summary>
         /// The amount of the enemy's gold
         /// </summary>
-        private int enemyGold { get; set; }
+        private float enemyGold { get; set; }
 
         /// <summary>
         /// List of the possible build positions for a 3x3 unit
@@ -694,11 +694,38 @@ namespace GameManager
         }
 
         /// <summary>
-        /// 
+        /// Keep track of the highest value that I get to in the round.
         /// </summary>
         private void TrackAgentValues()
         {
-
+            if (enemyWorkers.Count > myStats["Worker Count"])
+            {
+                myStats["Worker Count"] = enemyWorkers.Count;
+            }
+            if (enemySoldiers.Count > myStats["Soldier Count"])
+            {
+                myStats["Soldier Count"] = enemySoldiers.Count;
+            }
+            if (enemyArchers.Count > myStats["Archer Count"])
+            {
+                myStats["Archer Count"] = enemyArchers.Count;
+            }
+            if (enemyBases.Count > myStats["Base Count"])
+            {
+                myStats["Base Count"] = enemyBases.Count;
+            }
+            if (enemyBarracks.Count > myStats["Barracks Count"])
+            {
+                myStats["Barracks Count"] = enemyBarracks.Count;
+            }
+            if (enemyRefineries.Count > myStats["Refinery Count"])
+            {
+                myStats["Refinery Count"] = enemyRefineries.Count;
+            }
+            if (enemyGold > myStats["Gold Count"])
+            {
+                myStats["Gold Count"] = enemyGold;
+            }
         }
 
         /// <summary>
@@ -744,7 +771,31 @@ namespace GameManager
         {
             float value = 0f;
 
+            // Get the values of my leftover units from their peak
+            float myWorkerValue = myStats["Worker Count"] - myWorkers.Count;
+            float mySoldierValue = myStats["Soldier Count"] - mySoldiers.Count;
+            float myArcherValue = myStats["Archer Count"] - myArchers.Count;
+            float myBaseValue = myStats["Base Count"] - myBases.Count;
+            float myBarracksValue = myStats["Barracks Count"] - myBarracks.Count;
+            float myRefineryValue = myStats["Refinery Count"] - myRefineries.Count;
+            float myGoldValue = myStats["Gold Count"] - Gold;
 
+            // Get the values from the enemy's leftover units from their peak
+            float enemyWorkerValue = enemyStats["Worker Count"] - myWorkers.Count;
+            float enemySoldierValue = enemyStats["Soldier Count"] - mySoldiers.Count;
+            float enemyArcherValue = enemyStats["Archer Count"] - myArchers.Count;
+            float enemyBaseValue = enemyStats["Base Count"] - myBases.Count;
+            float enemyBarracksValue = enemyStats["Barracks Count"] - myBarracks.Count;
+            float enemyRefineryValue = enemyStats["Refinery Count"] - myRefineries.Count;
+            float enemyGoldValue = enemyStats["Gold Coun"] - enemyGold;
+
+            learningValues[0] = Mathf.Abs(enemySoldierValue - mySoldierValue);
+            learningValues[1] = Mathf.Abs(enemyArcherValue - myArcherValue);
+            learningValues[2] = Mathf.Abs(enemyWorkerValue - myWorkerValue);
+            learningValues[3] = Mathf.Abs(enemyBaseValue - myBaseValue);
+            learningValues[4] = Mathf.Abs(enemyBarracksValue - myBarracksValue);
+            learningValues[5] = Mathf.Abs(enemyRefineryValue - myRefineryValue);
+            learningValues[6] = Mathf.Abs(enemyGoldValue - myGoldValue);
             return value;
         }
 

@@ -93,9 +93,37 @@
             List of the enemy's refineries
             </summary>
         </member>
+        <member name="P:GameManager.PlanningAgent.enemyGold">
+            <summary>
+            The amount of the enemy's gold
+            </summary>
+        </member>
         <member name="P:GameManager.PlanningAgent.buildPositions">
             <summary>
             List of the possible build positions for a 3x3 unit
+            </summary>
+        </member>
+        <member name="F:GameManager.PlanningAgent.heuristics">
+            <summary>
+            The values that will help the agent make decisions
+            </summary>
+        </member>
+        <member name="F:GameManager.PlanningAgent.learningValues">
+            <summary>
+            The values that will contribute to learning between
+            rounds.
+            </summary>
+        </member>
+        <member name="F:GameManager.PlanningAgent.myStats">
+            <summary>
+            Keep track of the peak values for each 
+            of my learning values, per round.
+            </summary>
+        </member>
+        <member name="F:GameManager.PlanningAgent.enemyStats">
+            <summary>
+            Keep track of the enemy's peak numbers
+            such as maximum soldiers, workers, etc.
             </summary>
         </member>
         <member name="F:GameManager.PlanningAgent.playerState">
@@ -199,6 +227,22 @@
             Find the mine closest to the worker
             </summary>
             <param name="workerNbr"></param>
+            <returns></returns>
+        </member>
+        <member name="M:GameManager.PlanningAgent.TrackAgentValues">
+            <summary>
+            Keep track of the highest value that I get to in the round.
+            </summary>
+        </member>
+        <member name="M:GameManager.PlanningAgent.TrackEnemyValues">
+            <summary>
+            Keep track of the enemy's values for comparison
+            </summary>
+        </member>
+        <member name="M:GameManager.PlanningAgent.CalculateLearningValues">
+            <summary>
+            Run calculations to provide value for match
+            </summary>
             <returns></returns>
         </member>
     </members>
