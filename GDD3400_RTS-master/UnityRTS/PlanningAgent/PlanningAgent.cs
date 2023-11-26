@@ -30,6 +30,7 @@ namespace GameManager
         private float DESIRED_ARCHERS = 30;
         private float DESIRED_GOLD = 2000;
 
+        // How much to change the semi-constants by.
         private float SEMI_CONSTANT_OFFSET = 10f;
 
         #region Private Data
@@ -165,10 +166,20 @@ namespace GameManager
         /// </summary>
         private PlayerState playerState;
 
+        /// <summary>
+        /// The total score of all values compared between
+        /// player agent and enemy agent.
+        /// </summary>
         private float totalScore;
 
+        /// <summary>
+        /// Check to see how things look to the elft
+        /// </summary>
         private bool exploringLeft;
 
+        /// <summary>
+        /// Check to see how things look to the right
+        /// </summary>
         private bool exploringRight;
 
         /// <summary>

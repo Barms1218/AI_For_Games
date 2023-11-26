@@ -131,6 +131,22 @@
             The state that the player's forces are in.
             </summary>
         </member>
+        <member name="F:GameManager.PlanningAgent.totalScore">
+            <summary>
+            The total score of all values compared between
+            player agent and enemy agent.
+            </summary>
+        </member>
+        <member name="F:GameManager.PlanningAgent.exploringLeft">
+            <summary>
+            Check to see how things look to the elft
+            </summary>
+        </member>
+        <member name="F:GameManager.PlanningAgent.exploringRight">
+            <summary>
+            Check to see how things look to the right
+            </summary>
+        </member>
         <member name="M:GameManager.PlanningAgent.FindProspectiveBuildPositions(GameManager.EnumTypes.UnitType)">
             <summary>
             Finds all of the possible build locations for a specific UnitType.
