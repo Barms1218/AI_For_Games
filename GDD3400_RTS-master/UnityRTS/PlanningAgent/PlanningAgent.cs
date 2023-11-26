@@ -796,15 +796,15 @@ namespace GameManager
 
             // If I have more workers I likely won since all theirs would be dead
             // Reward agent if I won quickly
-            if (myWorkers.Count > enemyWorkers.Count && timeScore > 0f && timeScore <= 30f)
+            if (myWorkers.Count > enemyWorkers.Count && timeScore > 0f && timeScore <= 60f)
             {
                 timeScore = 100f;
             }
-            else if (myWorkers.Count > enemyWorkers.Count && timeScore > 30f && timeScore <= 60f)
+            else if (myWorkers.Count > enemyWorkers.Count && timeScore > 60f && timeScore <= 120f)
             {
                 timeScore = 50f;
             }
-            else if (myWorkers.Count > enemyWorkers.Count && timeScore > 60f && timeScore <= 90f)
+            else if (myWorkers.Count > enemyWorkers.Count && timeScore > 120f && timeScore <= 180f)
             {
                 timeScore = 25f;
             }
@@ -815,15 +815,15 @@ namespace GameManager
 
             // If all my workers are dead I likely lost and the speed at which I lost
             // Should punish my agent
-            if (myWorkers.Count < enemyWorkers.Count && timeScore > 0f && timeScore <= 30f)
+            if (myWorkers.Count < enemyWorkers.Count && timeScore > 0f && timeScore <= 60f)
             {
                 timeScore = -100f;
             }
-            else if (myWorkers.Count < enemyWorkers.Count && timeScore > 30f && timeScore <= 60f)
+            else if (myWorkers.Count < enemyWorkers.Count && timeScore > 60f && timeScore <= 120f)
             {
                 timeScore = -50f;
             }
-            else if (myWorkers.Count < enemyWorkers.Count && timeScore > 60f && timeScore <= 90f)
+            else if (myWorkers.Count < enemyWorkers.Count && timeScore > 120f && timeScore <= 180f)
             {
                 timeScore = -25f;
             }
