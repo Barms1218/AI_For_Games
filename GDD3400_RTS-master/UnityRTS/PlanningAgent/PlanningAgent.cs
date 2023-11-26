@@ -26,9 +26,11 @@ namespace GameManager
         private float MAX_BASES = 1;
         private float MAX_BARRACKS = 1;
         private float MAX_REFINERIES = 1;
-        private float DESIRED_SOLDIERS = 10;
-        private float DESIRED_ARCHERS = 12;
+        private float DESIRED_SOLDIERS = 20;
+        private float DESIRED_ARCHERS = 30;
         private float DESIRED_GOLD = 2000;
+
+        private float SEMI_CONSTANT_OFFSET = 10f;
 
         #region Private Data
 
@@ -163,7 +165,11 @@ namespace GameManager
         /// </summary>
         private PlayerState playerState;
 
-        private float timeScore;
+        private float totalScore;
+
+        private bool exploringLeft;
+
+        private bool exploringRight;
 
         /// <summary>
         /// Finds all of the possible build locations for a specific UnitType.
@@ -290,7 +296,7 @@ namespace GameManager
         public override void InitializeRound()
         {
             // Reset the round timer
-            timeScore = 0f;
+            totalScore = 0f;
 
             //Debug.Log("PlanningAgent::InitializeRound");
             buildPositions = new List<Vector3Int>();
@@ -449,7 +455,7 @@ namespace GameManager
             }
 
 
-            timeScore += Time.deltaTime;
+            totalScore += Time.deltaTime;
 
 
             foreach (KeyValuePair<String, float> item in heuristics)
@@ -774,8 +780,6 @@ namespace GameManager
         /// <returns></returns>
         private float CalculateLearningValues()
         {
-            float value = 0f;
-
             // Get the values of my leftover units from their peak
             float myWorkerValue = myStats["Worker Count"] - myWorkers.Count;
             float mySoldierValue = myStats["Soldier Count"] - mySoldiers.Count;
@@ -794,52 +798,24 @@ namespace GameManager
             float enemyRefineryValue = enemyStats["Refinery Count"] - myRefineries.Count;
             float enemyGoldValue = enemyStats["Gold Count"] - enemyGold;
 
-            // If I have more workers I likely won since all theirs would be dead
-            // Reward agent if I won quickly
-            if (myWorkers.Count > enemyWorkers.Count && timeScore > 0f && timeScore <= 60f)
+            // Add up all the values
+            learningValues[0] = Mathf.Abs(enemySoldierValue - mySoldierValue);
+            learningValues[1] = Mathf.Abs(enemyArcherValue - myArcherValue);
+            learningValues[2] = Mathf.Abs(enemyWorkerValue - myWorkerValue);
+            learningValues[3] = Mathf.Abs(enemyBaseValue - myBaseValue);
+            learningValues[4] = Mathf.Abs(enemyBarracksValue - myBarracksValue);
+            learningValues[5] = Mathf.Abs(enemyRefineryValue - myRefineryValue);
+            learningValues[6] = Mathf.Abs(enemyGoldValue - myGoldValue);
+
+            foreach (float score in learningValues.Values)
             {
-                timeScore = 100f;
-            }
-            else if (myWorkers.Count > enemyWorkers.Count && timeScore > 60f && timeScore <= 120f)
-            {
-                timeScore = 50f;
-            }
-            else if (myWorkers.Count > enemyWorkers.Count && timeScore > 120f && timeScore <= 180f)
-            {
-                timeScore = 25f;
-            }
-            else
-            {
-                timeScore = 0f;
+                totalScore += score;
             }
 
-            // If all my workers are dead I likely lost and the speed at which I lost
-            // Should punish my agent
-            if (myWorkers.Count < enemyWorkers.Count && timeScore > 0f && timeScore <= 60f)
-            {
-                timeScore = -100f;
-            }
-            else if (myWorkers.Count < enemyWorkers.Count && timeScore > 60f && timeScore <= 120f)
-            {
-                timeScore = -50f;
-            }
-            else if (myWorkers.Count < enemyWorkers.Count && timeScore > 120f && timeScore <= 180f)
-            {
-                timeScore = -25f;
-            }
-            else
-            {
-                timeScore = 0f;
-            }
+            // Correct game score for how long or short the round was
+            totalScore /= GameManager.Instance.TotalGameTime;
 
-            learningValues[0] = Mathf.Abs(enemySoldierValue - mySoldierValue) + timeScore;
-            learningValues[1] = Mathf.Abs(enemyArcherValue - myArcherValue) + timeScore;
-            learningValues[2] = Mathf.Abs(enemyWorkerValue - myWorkerValue) + timeScore;
-            learningValues[3] = Mathf.Abs(enemyBaseValue - myBaseValue) + timeScore;
-            learningValues[4] = Mathf.Abs(enemyBarracksValue - myBarracksValue) + timeScore;
-            learningValues[5] = Mathf.Abs(enemyRefineryValue - myRefineryValue) + timeScore;
-            learningValues[6] = Mathf.Abs(enemyGoldValue - myGoldValue) + timeScore;
-            return value;
+            return totalScore;
         }
 
         #endregion
