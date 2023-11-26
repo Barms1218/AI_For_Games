@@ -163,6 +163,8 @@ namespace GameManager
         /// </summary>
         private PlayerState playerState;
 
+        private float timeScore;
+
         /// <summary>
         /// Finds all of the possible build locations for a specific UnitType.
         /// Currently, all structures are 3x3, so these positions can be reused
@@ -287,6 +289,9 @@ namespace GameManager
         /// </summary>
         public override void InitializeRound()
         {
+            // Reset the round timer
+            timeScore = 0f;
+
             //Debug.Log("PlanningAgent::InitializeRound");
             buildPositions = new List<Vector3Int>();
 
@@ -444,7 +449,7 @@ namespace GameManager
             }
 
 
-            Debug.LogWarning(playerState.ToString());
+            timeScore += Time.deltaTime;
 
 
             foreach (KeyValuePair<String, float> item in heuristics)
@@ -698,33 +703,33 @@ namespace GameManager
         /// </summary>
         private void TrackAgentValues()
         {
-            if (enemyWorkers.Count > myStats["Worker Count"])
+            if (myWorkers.Count > myStats["Worker Count"])
             {
-                myStats["Worker Count"] = enemyWorkers.Count;
+                myStats["Worker Count"] = myWorkers.Count;
             }
-            if (enemySoldiers.Count > myStats["Soldier Count"])
+            if (mySoldiers.Count > myStats["Soldier Count"])
             {
-                myStats["Soldier Count"] = enemySoldiers.Count;
+                myStats["Soldier Count"] = mySoldiers.Count;
             }
-            if (enemyArchers.Count > myStats["Archer Count"])
+            if (myArchers.Count > myStats["Archer Count"])
             {
-                myStats["Archer Count"] = enemyArchers.Count;
+                myStats["Archer Count"] = myArchers.Count;
             }
-            if (enemyBases.Count > myStats["Base Count"])
+            if (myBases.Count > myStats["Base Count"])
             {
-                myStats["Base Count"] = enemyBases.Count;
+                myStats["Base Count"] = myBases.Count;
             }
-            if (enemyBarracks.Count > myStats["Barracks Count"])
+            if (myBarracks.Count > myStats["Barracks Count"])
             {
-                myStats["Barracks Count"] = enemyBarracks.Count;
+                myStats["Barracks Count"] = myBarracks.Count;
             }
-            if (enemyRefineries.Count > myStats["Refinery Count"])
+            if (myRefineries.Count > myStats["Refinery Count"])
             {
-                myStats["Refinery Count"] = enemyRefineries.Count;
+                myStats["Refinery Count"] = myRefineries.Count;
             }
-            if (enemyGold > myStats["Gold Count"])
+            if (Gold > myStats["Gold Count"])
             {
-                myStats["Gold Count"] = enemyGold;
+                myStats["Gold Count"] = Gold;
             }
         }
 
@@ -787,15 +792,53 @@ namespace GameManager
             float enemyBaseValue = enemyStats["Base Count"] - myBases.Count;
             float enemyBarracksValue = enemyStats["Barracks Count"] - myBarracks.Count;
             float enemyRefineryValue = enemyStats["Refinery Count"] - myRefineries.Count;
-            float enemyGoldValue = enemyStats["Gold Coun"] - enemyGold;
+            float enemyGoldValue = enemyStats["Gold Count"] - enemyGold;
 
-            learningValues[0] = Mathf.Abs(enemySoldierValue - mySoldierValue);
-            learningValues[1] = Mathf.Abs(enemyArcherValue - myArcherValue);
-            learningValues[2] = Mathf.Abs(enemyWorkerValue - myWorkerValue);
-            learningValues[3] = Mathf.Abs(enemyBaseValue - myBaseValue);
-            learningValues[4] = Mathf.Abs(enemyBarracksValue - myBarracksValue);
-            learningValues[5] = Mathf.Abs(enemyRefineryValue - myRefineryValue);
-            learningValues[6] = Mathf.Abs(enemyGoldValue - myGoldValue);
+            // If I have more workers I likely won since all theirs would be dead
+            // Reward agent if I won quickly
+            if (myWorkers.Count > enemyWorkers.Count && timeScore > 0f && timeScore <= 30f)
+            {
+                timeScore = 100f;
+            }
+            else if (myWorkers.Count > enemyWorkers.Count && timeScore > 30f && timeScore <= 60f)
+            {
+                timeScore = 50f;
+            }
+            else if (myWorkers.Count > enemyWorkers.Count && timeScore > 60f && timeScore <= 90f)
+            {
+                timeScore = 25f;
+            }
+            else
+            {
+                timeScore = 0f;
+            }
+
+            // If all my workers are dead I likely lost and the speed at which I lost
+            // Should punish my agent
+            if (myWorkers.Count < enemyWorkers.Count && timeScore > 0f && timeScore <= 30f)
+            {
+                timeScore = -100f;
+            }
+            else if (myWorkers.Count < enemyWorkers.Count && timeScore > 30f && timeScore <= 60f)
+            {
+                timeScore = -50f;
+            }
+            else if (myWorkers.Count < enemyWorkers.Count && timeScore > 60f && timeScore <= 90f)
+            {
+                timeScore = -25f;
+            }
+            else
+            {
+                timeScore = 0f;
+            }
+
+            learningValues[0] = Mathf.Abs(enemySoldierValue - mySoldierValue) + timeScore;
+            learningValues[1] = Mathf.Abs(enemyArcherValue - myArcherValue) + timeScore;
+            learningValues[2] = Mathf.Abs(enemyWorkerValue - myWorkerValue) + timeScore;
+            learningValues[3] = Mathf.Abs(enemyBaseValue - myBaseValue) + timeScore;
+            learningValues[4] = Mathf.Abs(enemyBarracksValue - myBarracksValue) + timeScore;
+            learningValues[5] = Mathf.Abs(enemyRefineryValue - myRefineryValue) + timeScore;
+            learningValues[6] = Mathf.Abs(enemyGoldValue - myGoldValue) + timeScore;
             return value;
         }
 
