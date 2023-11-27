@@ -29,16 +29,16 @@ namespace GameManager
         /// </summary>
         /// 
 
-        private float DESIRED_WORKERS = 10;
-        private float MAX_BASES = 1;
-        private float MAX_BARRACKS = 1;
+        private float DESIRED_WORKERS = 15;
+        private float MAX_BASES = 3;
+        private float MAX_BARRACKS = 5;
         private float MAX_REFINERIES = 1;
         private float DESIRED_SOLDIERS = 20;
         private float DESIRED_ARCHERS = 30;
         private float DESIRED_GOLD = 2000;
 
         // How much to change the semi-constants by.
-        private float SEMI_CONSTANT_OFFSET = 15f;
+        private float SEMI_CONSTANT_OFFSET = 5f;
 
         #region Private Data
 
@@ -900,10 +900,18 @@ namespace GameManager
             else
             {
                 // find new hill meaning add offset to semi-constant
-                if (newScore < previousScore && (currentHill < maxHills))
+                if (newScore < previousScore && (currentHill < maxHills) || totalScore == 0)
                 {
                     currentHill++;
-                    learningValue += SEMI_CONSTANT_OFFSET * changeDirection;  
+                    learningValue += SEMI_CONSTANT_OFFSET * changeDirection;
+
+                    // // Change the direction of the next hill
+                    // if the learning value was reduced below 0
+                    if (learningValue < 0)
+                    {
+                        totalScore = 0;
+                        changeDirection *= -1;
+                    }
                 }
                 else if (newScore < previousScore && (currentHill == maxHills))
                 {
