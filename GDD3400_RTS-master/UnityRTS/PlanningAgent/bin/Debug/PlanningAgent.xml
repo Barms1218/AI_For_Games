@@ -268,7 +268,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:GameManager.PlanningAgent.HillClimb(System.Single,System.Single@)">
+        <member name="M:GameManager.PlanningAgent.HillClimb(System.Single,System.Single@,System.Single)">
             <summary>
             Explore left or explore right, then
             begin the process of hill climbing

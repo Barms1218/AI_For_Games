@@ -29,13 +29,20 @@ namespace GameManager
         /// </summary>
         /// 
 
-        private float DESIRED_WORKERS = 15;
-        private float MAX_BASES = 3;
-        private float MAX_BARRACKS = 5;
+        private float DESIRED_WORKERS = 10;
+        private float MAX_BASES = 2;
+        private float MAX_BARRACKS = 3;
         private float MAX_REFINERIES = 1;
         private float DESIRED_SOLDIERS = 20;
         private float DESIRED_ARCHERS = 30;
         private float DESIRED_GOLD = 2000;
+
+        private const int WORKER_OFFSET = 5;
+        private const int BASE_OFFSET = 2;
+        private const int BARRACKS_OFFSET = 3;
+        private const int REFINERY_OFFSEET = 1;
+        private const int SOLDIER_OFFSET = 15;
+        private const int ARCHER_OFFSET = 12;
 
         // How much to change the semi-constants by.
         private float SEMI_CONSTANT_OFFSET = 5f;
@@ -300,27 +307,27 @@ namespace GameManager
             switch (currentConstIndex)
             {
                 case 0:
-                    HillClimb(0.5f, ref DESIRED_WORKERS);
+                    HillClimb(0.5f, ref DESIRED_WORKERS, WORKER_OFFSET);
                     Log(learningValues[0].ToString());
                     break;
                 case 1:
-                    HillClimb(0.2f, ref MAX_BASES);
+                    HillClimb(0.2f, ref MAX_BASES, BASE_OFFSET);
                     Log(learningValues[4].ToString());
                     break;
                 case 2:
-                    HillClimb(1f, ref MAX_BARRACKS);
+                    HillClimb(1f, ref MAX_BARRACKS, BARRACKS_OFFSET);
                     Log(learningValues[3].ToString());
                     break;
                 case 3:
-                    HillClimb(0.25f, ref MAX_REFINERIES);
+                    HillClimb(0.25f, ref MAX_REFINERIES, REFINERY_OFFSEET);
                     Log(learningValues[5].ToString());
                     break;
                 case 4:
-                    HillClimb(0.5f, ref DESIRED_SOLDIERS);
+                    HillClimb(0.5f, ref DESIRED_SOLDIERS, SOLDIER_OFFSET);
                     Log(learningValues[2].ToString());
                     break;
                 case 5:
-                    HillClimb(0.4f, ref DESIRED_ARCHERS);
+                    HillClimb(0.4f, ref DESIRED_ARCHERS, ARCHER_OFFSET);
                     Log(learningValues[1].ToString());
                     break;
             }
@@ -861,10 +868,16 @@ namespace GameManager
         /// </summary>
         /// <param name="factorChange"></param>
         /// <param name="learningValue"></param>
-        private void HillClimb(float factorChange, ref float learningValue)
+        private void HillClimb(float factorChange, ref float learningValue, float offSetValue)
         {
             float previousScore = totalScore;
             float newScore = CalculateLearningValues();
+
+            // If the change made the score worse, change directions.
+            if (newScore < previousScore)
+            {
+                changeDirection = -changeDirection;
+            }
 
             // Make the agent explore left first
             if (!exploringLeft && !exploringRight && !doneExploring)
@@ -904,7 +917,7 @@ namespace GameManager
                 if (newScore < previousScore && (currentHill < maxHills) || totalScore == 0)
                 {
                     currentHill++;
-                    learningValue += SEMI_CONSTANT_OFFSET * changeDirection;
+                    learningValue += offSetValue * changeDirection;
 
                     // // Change the direction of the next hill
                     // if the learning value was reduced below 0
