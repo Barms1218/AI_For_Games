@@ -7,6 +7,7 @@ using System;
 using static UnityEngine.UI.GridLayoutGroup;
 using System.Xml.Serialization;
 using System.Net.Mail;
+using UnityEngine.Experimental.UIElements;
 
 /////////////////////////////////////////////////////////////////////////////
 // This is the Moron Agent
@@ -22,6 +23,12 @@ namespace GameManager
     ///</summary> 
     public class PlanningAgent : Agent
     {
+        /// <summary>
+        /// Do three hills for each value, when your score starts to 
+        /// decrease after the third hill you're done.
+        /// </summary>
+        /// 
+
         private float DESIRED_WORKERS = 10;
         private float MAX_BASES = 1;
         private float MAX_BARRACKS = 1;
@@ -31,7 +38,7 @@ namespace GameManager
         private float DESIRED_GOLD = 2000;
 
         // How much to change the semi-constants by.
-        private float SEMI_CONSTANT_OFFSET = 10f;
+        private float SEMI_CONSTANT_OFFSET = 15f;
 
         #region Private Data
 
@@ -182,6 +189,16 @@ namespace GameManager
         /// </summary>
         private bool exploringRight;
 
+        private int currentConstIndex;
+
+        private int maxHills = 3;
+
+        private int currentHill = 0;
+
+        private int changeDirection = 1;
+
+        private bool doneExploring = false;
+
         /// <summary>
         /// Finds all of the possible build locations for a specific UnitType.
         /// Currently, all structures are 3x3, so these positions can be reused
@@ -280,15 +297,38 @@ namespace GameManager
         {
             Debug.Log("Nbr Wins: " + AgentNbrWins);
 
-            CalculateLearningValues();
+            switch (currentConstIndex)
+            {
+                case 0:
+                    HillClimb(0.5f, ref DESIRED_WORKERS);
+                    Log(learningValues[0].ToString());
+                    break;
+                case 1:
+                    HillClimb(0.2f, ref MAX_BASES);
+                    Log(learningValues[4].ToString());
+                    break;
+                case 2:
+                    HillClimb(1f, ref MAX_BARRACKS);
+                    Log(learningValues[3].ToString());
+                    break;
+                case 3:
+                    HillClimb(0.25f, ref MAX_REFINERIES);
+                    Log(learningValues[5].ToString());
+                    break;
+                case 4:
+                    HillClimb(0.5f, ref DESIRED_SOLDIERS);
+                    Log(learningValues[2].ToString());
+                    break;
+                case 5:
+                    HillClimb(0.4f, ref DESIRED_ARCHERS);
+                    Log(learningValues[1].ToString());
+                    break;
+            }
 
             Debug.Log("PlanningAgent::Learn");
-            Log(learningValues[0].ToString());
-            Log(learningValues[1].ToString());
-            Log(learningValues[2].ToString());
-            Log(learningValues[3].ToString());
-            Log(learningValues[4].ToString());
-            Log(learningValues[5].ToString());
+
+            Log(totalScore.ToString());
+
         }
 
         /// <summary>
@@ -338,7 +378,6 @@ namespace GameManager
                 {DESIRED_WORKERS, 0f },
                 {DESIRED_SOLDIERS, 0f },
                 {DESIRED_ARCHERS, 0f },
-                {DESIRED_GOLD, 0f },
                 {MAX_BARRACKS, 0f },
                 {MAX_BASES, 0f },
                 {MAX_REFINERIES, 0f }
@@ -352,8 +391,7 @@ namespace GameManager
                 {"Worker Count", 0 },
                 {"Base Count", 0 },
                 {"Barracks Count", 0 },
-                {"Refinery Count", 0 },
-                {"Gold Count", 0 }
+                {"Refinery Count", 0 }
             };
 
             // Re-Initialize my stats for the round 
@@ -364,8 +402,7 @@ namespace GameManager
                 {"Worker Count", 0 },
                 {"Base Count", 0 },
                 {"Barracks Count", 0 },
-                {"Refinery Count", 0 },
-                {"Gold Count", 0 }
+                {"Refinery Count", 0 }
             };
 
             // Set the main mine and base to "non-existent"
@@ -744,10 +781,6 @@ namespace GameManager
             {
                 myStats["Refinery Count"] = myRefineries.Count;
             }
-            if (Gold > myStats["Gold Count"])
-            {
-                myStats["Gold Count"] = Gold;
-            }
         }
 
         /// <summary>
@@ -779,10 +812,6 @@ namespace GameManager
             {
                 enemyStats["Refinery Count"] = enemyRefineries.Count;
             }
-            if (enemyGold > enemyStats["Gold Count"])
-            {
-                enemyStats["Gold Count"] = enemyGold;
-            }
         }
 
         /// <summary>
@@ -798,25 +827,21 @@ namespace GameManager
             float myBaseValue = myStats["Base Count"] - myBases.Count;
             float myBarracksValue = myStats["Barracks Count"] - myBarracks.Count;
             float myRefineryValue = myStats["Refinery Count"] - myRefineries.Count;
-            float myGoldValue = myStats["Gold Count"] - Gold;
 
             // Get the values from the enemy's leftover units from their peak
-            float enemyWorkerValue = enemyStats["Worker Count"] - myWorkers.Count;
-            float enemySoldierValue = enemyStats["Soldier Count"] - mySoldiers.Count;
-            float enemyArcherValue = enemyStats["Archer Count"] - myArchers.Count;
-            float enemyBaseValue = enemyStats["Base Count"] - myBases.Count;
-            float enemyBarracksValue = enemyStats["Barracks Count"] - myBarracks.Count;
-            float enemyRefineryValue = enemyStats["Refinery Count"] - myRefineries.Count;
-            float enemyGoldValue = enemyStats["Gold Count"] - enemyGold;
+            float enemyWorkerValue = enemyStats["Worker Count"] - enemyWorkers.Count;
+            float enemySoldierValue = enemyStats["Soldier Count"] - enemySoldiers.Count;
+            float enemyArcherValue = enemyStats["Archer Count"] - enemyArchers.Count;
+            float enemyBaseValue = enemyStats["Base Count"] - enemyBases.Count;
+            float enemyBarracksValue = enemyStats["Barracks Count"] - enemyBarracks.Count;
+            float enemyRefineryValue = enemyStats["Refinery Count"] - enemyRefineries.Count;
 
             // Add up all the values
             learningValues[0] = Mathf.Abs(enemySoldierValue - mySoldierValue);
-            learningValues[1] = Mathf.Abs(enemyArcherValue - myArcherValue);
             learningValues[2] = Mathf.Abs(enemyWorkerValue - myWorkerValue);
             learningValues[3] = Mathf.Abs(enemyBaseValue - myBaseValue);
             learningValues[4] = Mathf.Abs(enemyBarracksValue - myBarracksValue);
             learningValues[5] = Mathf.Abs(enemyRefineryValue - myRefineryValue);
-            learningValues[6] = Mathf.Abs(enemyGoldValue - myGoldValue);
 
             foreach (float score in learningValues.Values)
             {
@@ -827,6 +852,75 @@ namespace GameManager
             totalScore /= GameManager.Instance.TotalGameTime;
 
             return totalScore;
+        }
+
+        /// <summary>
+        /// Explore left or explore right, then
+        /// begin the process of hill climbing
+        /// </summary>
+        /// <param name="factorChange"></param>
+        /// <param name="learningValue"></param>
+        private void HillClimb(float factorChange, ref float learningValue)
+        {
+            float previousScore = totalScore;
+            float newScore = CalculateLearningValues();
+
+            // Make the agent explore left first
+            if (!exploringLeft && !exploringRight && !doneExploring)
+            {
+                changeDirection = -changeDirection;
+                learningValue += factorChange * changeDirection;
+                exploringLeft = true;
+            }
+            // Make the agent explore to the right
+            else if (exploringLeft)
+            {
+                learningValue += factorChange * 2;
+                exploringRight = true;
+                exploringLeft = false;
+            }
+            // The agent has explored both directions and is now done
+            // exploring
+            else if (exploringRight)
+            {
+                // If exploring right did worse
+                if (newScore < previousScore)
+                {
+                    changeDirection = -changeDirection;
+                }
+                else
+                {
+                    changeDirection = 1;
+                }
+
+                exploringRight = false;
+                doneExploring = true;
+            }
+            // Begin climbing in the direction that did better
+            else
+            {
+                // find new hill meaning add offset to semi-constant
+                if (newScore < previousScore && (currentHill < maxHills))
+                {
+                    currentHill++;
+                    learningValue += SEMI_CONSTANT_OFFSET * changeDirection;  
+                }
+                else if (newScore < previousScore && (currentHill == maxHills))
+                {
+                    currentHill = 0;
+
+                    // change constant
+                    currentConstIndex++;
+                    if (currentConstIndex == 5)
+                    {
+                        currentConstIndex = 0;
+                    }
+                }
+                else
+                {
+                    learningValue += factorChange * changeDirection;
+                }
+            }
         }
 
         #endregion

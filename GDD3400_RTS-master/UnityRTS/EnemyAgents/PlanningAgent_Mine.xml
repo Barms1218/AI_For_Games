@@ -10,6 +10,13 @@
              AI is handled by other classes (like pathfinding).
             </summary> 
         </member>
+        <member name="F:GameManager.PlanningAgent.DESIRED_WORKERS">
+            <summary>
+            Do three hills for each value, when your score starts to 
+            decrease after the third hill you're done.
+            </summary>
+            
+        </member>
         <member name="T:GameManager.PlanningAgent.PlayerState">
             
         </member>
@@ -260,6 +267,14 @@
             Run calculations to provide value for match
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:GameManager.PlanningAgent.HillClimb(System.Single,System.Single@)">
+            <summary>
+            Explore left or explore right, then
+            begin the process of hill climbing
+            </summary>
+            <param name="factorChange"></param>
+            <param name="learningValue"></param>
         </member>
     </members>
 </doc>
