@@ -838,6 +838,7 @@ namespace GameManager
 
             // Add up all the values
             learningValues[0] = Mathf.Abs(enemySoldierValue - mySoldierValue);
+            learningValues[1] = Mathf.Abs(enemyArcherValue - myArcherValue);
             learningValues[2] = Mathf.Abs(enemyWorkerValue - myWorkerValue);
             learningValues[3] = Mathf.Abs(enemyBaseValue - myBaseValue);
             learningValues[4] = Mathf.Abs(enemyBarracksValue - myBarracksValue);
