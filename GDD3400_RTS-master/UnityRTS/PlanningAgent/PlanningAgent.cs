@@ -916,16 +916,25 @@ namespace GameManager
                 // find new hill meaning add offset to semi-constant
                 if (newScore < previousScore && (currentHill < maxHills) || totalScore == 0)
                 {
+                    // Move to the next hill
                     currentHill++;
-                    learningValue += offSetValue * changeDirection;
 
-                    // // Change the direction of the next hill
-                    // if the learning value was reduced below 0
-                    if (learningValue < 0)
+                    // If learning value is about to go below 0,
+                    // reset the process because nothing of value will be learned.
+                    if (learningValue - offSetValue < 0)
                     {
-                        totalScore = 0;
+                        // The hill is not worth anything if it results in negative values
+                        learningValue = 0;
+
+                        // Change direction so that value will increase
                         changeDirection *= -1;
+
+                        // Don't do anything more with this hill because it isn't of any value
+                        return;
                     }
+
+                    // Update value by its offset when looking for a new hill
+                    learningValue += offSetValue * changeDirection;
                 }
                 else if (newScore < previousScore && (currentHill == maxHills))
                 {
@@ -933,6 +942,12 @@ namespace GameManager
 
                     // change constant
                     currentConstIndex++;
+
+                    // Reset these values so every semi-constant can explore
+                    exploringLeft = false;
+                    exploringRight = false;
+                    doneExploring = false;
+
                     if (currentConstIndex == 5)
                     {
                         currentConstIndex = 0;
