@@ -29,11 +29,11 @@ namespace GameManager
         /// </summary>
         /// 
 
-        private float DESIRED_WORKERS = 10;
-        private float MAX_BASES = 2;
-        private float MAX_BARRACKS = 3;
-        private float MAX_REFINERIES = 1;
-        private float DESIRED_SOLDIERS = 20;
+        private float DESIRED_WORKERS = 10.5f;
+        private float MAX_BASES = 1.8f;
+        private float MAX_BARRACKS = 4;
+        private float MAX_REFINERIES = 0.75f;
+        private float DESIRED_SOLDIERS = 20.5f;
         private float DESIRED_ARCHERS = 30;
         private float DESIRED_GOLD = 2000;
 
@@ -141,6 +141,11 @@ namespace GameManager
         /// List of the enemy's refineries
         /// </summary>
         private List<int> enemyRefineries { get; set; }
+
+        /// <summary>
+        /// A list of all the enemis
+        /// </summary>
+        private List<int> totalEnemies { get; set; }
 
         /// <summary>
         /// The amount of the enemy's gold
@@ -278,16 +283,98 @@ namespace GameManager
         /// </summary>
         /// <param name="myTroops"></param>
         /// <param name="enemies"></param>
-        public void AttackEnemy(List<int> myTroops, List<int> enemies)
+        public void AttackEnemy(string value, List<int> mySoldiers, List<int> myArchers)
         {
+
             // For each of my troops in this collection
-            foreach (int troopNbr in myTroops)
+            foreach (int troopNbr in mySoldiers)
             {
+                List<int> enemies = new List<int>();
+
                 // If this troop is idle, give him something to attack
                 Unit troopUnit = GameManager.Instance.GetUnit(troopNbr);
 
                 if (troopUnit.CurrentAction == UnitAction.IDLE && enemies.Count > 0)
                 {
+                    switch(value)
+                    {
+                        case "Attack Soldier":
+                            enemies = enemySoldiers;
+                            //AttackEnemy(mySoldiers, enemySoldiers);
+                            //AttackEnemy(myArchers, enemySoldiers);
+                            break;
+                        case "Attack Archer":
+                            enemies = enemyArchers;
+                            //AttackEnemy(mySoldiers, enemyArchers);
+                            //AttackEnemy(myArchers, enemyArchers);
+                            break;
+                        case "Attack Worker":
+                            enemies = enemyWorkers;
+                            //AttackEnemy(mySoldiers, enemyWorkers);
+                            //AttackEnemy(myArchers, enemyWorkers);
+                            break;
+                        case "Attack Base":
+                            enemies = enemyBases;
+                            //AttackEnemy(mySoldiers, enemyBases);
+                            //AttackEnemy(myArchers, enemyBases);
+                            break;
+                        case "Attack Barracks":
+                            enemies = enemyBarracks;
+                            //AttackEnemy(mySoldiers, enemyBarracks);
+                            //AttackEnemy(myArchers, enemyBarracks);
+                            break;
+                        case "Attack Refinery":
+                            enemies = enemyRefineries;
+                            //AttackEnemy(mySoldiers, enemyRefineries);
+                            //AttackEnemy(myArchers, enemyRefineries);
+                            break;
+                    }
+                    Attack(troopUnit, GameManager.Instance.GetUnit(enemies[UnityEngine.Random.Range(0, enemies.Count)]));
+                }
+            }
+            // For each of my troops in this collection
+            foreach (int troopNbr in myArchers)
+            {
+                List<int> enemies = new List<int>();
+
+                // If this troop is idle, give him something to attack
+                Unit troopUnit = GameManager.Instance.GetUnit(troopNbr);
+
+                if (troopUnit.CurrentAction == UnitAction.IDLE && enemies.Count > 0)
+                {
+                    switch (value)
+                    {
+                        case "Attack Soldier":
+                            enemies = enemySoldiers;
+                            //AttackEnemy(mySoldiers, enemySoldiers);
+                            //AttackEnemy(myArchers, enemySoldiers);
+                            break;
+                        case "Attack Archer":
+                            enemies = enemyArchers;
+                            //AttackEnemy(mySoldiers, enemyArchers);
+                            //AttackEnemy(myArchers, enemyArchers);
+                            break;
+                        case "Attack Worker":
+                            enemies = enemyWorkers;
+                            //AttackEnemy(mySoldiers, enemyWorkers);
+                            //AttackEnemy(myArchers, enemyWorkers);
+                            break;
+                        case "Attack Base":
+                            enemies = enemyBases;
+                            //AttackEnemy(mySoldiers, enemyBases);
+                            //AttackEnemy(myArchers, enemyBases);
+                            break;
+                        case "Attack Barracks":
+                            enemies = enemyBarracks;
+                            //AttackEnemy(mySoldiers, enemyBarracks);
+                            //AttackEnemy(myArchers, enemyBarracks);
+                            break;
+                        case "Attack Refinery":
+                            enemies = enemyRefineries;
+                            //AttackEnemy(mySoldiers, enemyRefineries);
+                            //AttackEnemy(myArchers, enemyRefineries);
+                            break;
+                    }
                     Attack(troopUnit, GameManager.Instance.GetUnit(enemies[UnityEngine.Random.Range(0, enemies.Count)]));
                 }
             }
@@ -308,33 +395,33 @@ namespace GameManager
             {
                 case 0:
                     HillClimb(0.5f, ref DESIRED_WORKERS, WORKER_OFFSET);
-                    Log(learningValues[0].ToString());
+                    Log("Workers Value : " + DESIRED_WORKERS.ToString());
                     break;
                 case 1:
                     HillClimb(0.2f, ref MAX_BASES, BASE_OFFSET);
-                    Log(learningValues[4].ToString());
+                    Log("Base Value: " + MAX_BASES.ToString());
                     break;
                 case 2:
                     HillClimb(1f, ref MAX_BARRACKS, BARRACKS_OFFSET);
-                    Log(learningValues[3].ToString());
+                    Log("Barracks Value: " + MAX_BARRACKS.ToString());
                     break;
                 case 3:
                     HillClimb(0.25f, ref MAX_REFINERIES, REFINERY_OFFSEET);
-                    Log(learningValues[5].ToString());
+                    Log("Refinery Value: " + MAX_REFINERIES.ToString());
                     break;
                 case 4:
                     HillClimb(0.5f, ref DESIRED_SOLDIERS, SOLDIER_OFFSET);
-                    Log(learningValues[2].ToString());
+                    Log("Soldier Value: " + DESIRED_SOLDIERS.ToString());
                     break;
                 case 5:
                     HillClimb(0.4f, ref DESIRED_ARCHERS, ARCHER_OFFSET);
-                    Log(learningValues[1].ToString());
+                    Log("Archer Value" + DESIRED_ARCHERS.ToString());
                     break;
             }
 
             Debug.Log("PlanningAgent::Learn");
 
-            Log(totalScore.ToString());
+            Log("Total Score was: " + totalScore.ToString());
 
         }
 
@@ -371,6 +458,7 @@ namespace GameManager
                 {"Build Refinery", 0f },
                 {"Train Soldier", 0f },
                 {"Train Archer", 0f },
+                {"Attack", 0f },
                 {"Attack Archers", 0f },
                 {"Attack Soldiers", 0f },
                 {"Attack Workers", 0f },
@@ -510,9 +598,6 @@ namespace GameManager
             }
 
 
-            totalScore += Time.deltaTime;
-
-
             foreach (KeyValuePair<String, float> item in heuristics)
             {
                 if (item.Value > 0.25f)
@@ -520,6 +605,7 @@ namespace GameManager
                     Debug.LogWarning("ACTION: " + item + " AND ITS VALUE IS: " + item.Value);
                     Debug.LogWarning(((DESIRED_WORKERS - myWorkers.Count) / DESIRED_WORKERS));
                     DoThing(item.Key);
+                    AttackEnemy(item.Key, mySoldiers, myArchers);
                 }
             }
 
@@ -557,30 +643,6 @@ namespace GameManager
                 case "Train Archer":
                     TrainArchers();
                     break;
-                case "Attack Soldier":
-                    AttackEnemy(mySoldiers, enemySoldiers);
-                    AttackEnemy(myArchers, enemySoldiers);
-                    break;
-                case "Attack Archer":
-                    AttackEnemy(mySoldiers, enemyArchers);
-                    AttackEnemy(myArchers, enemyArchers);
-                    break;
-                case "Attack Worker":
-                    AttackEnemy(mySoldiers, enemyWorkers);
-                    AttackEnemy(myArchers, enemyWorkers);
-                    break;
-                case "Attack Base":
-                    AttackEnemy(mySoldiers, enemyBases);
-                    AttackEnemy(myArchers, enemyBases);
-                    break;
-                case "Attack Barracks":
-                    AttackEnemy(mySoldiers, enemyBarracks);
-                    AttackEnemy(myArchers, enemyBarracks);
-                    break;
-                case "Attack Refinery":
-                    AttackEnemy(mySoldiers, enemyRefineries);
-                    AttackEnemy(myArchers, enemyRefineries);
-                    break;
             }
         }
 
@@ -601,7 +663,7 @@ namespace GameManager
             float attackRefineries = playerState == PlayerState.ATTACK ? 1.0f : 0.55f;
             float attackWorkers = playerState == PlayerState.ATTACK ? 1.0f : 0.70f;
             float attackSoldiers = playerState == PlayerState.ATTACK ? 1.0f : 0.75f;
-            float attackArchers = playerState == PlayerState.ATTACK ? 1.0f : 0.75f;
+            float attackArchers = playerState == PlayerState.ATTACK ? 1.0f : 1.0f;
 
 
             // If there is less than one base, it is vital to build a base

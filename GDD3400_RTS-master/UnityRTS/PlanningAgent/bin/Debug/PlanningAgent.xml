@@ -100,6 +100,11 @@
             List of the enemy's refineries
             </summary>
         </member>
+        <member name="P:GameManager.PlanningAgent.totalEnemies">
+            <summary>
+            A list of all the enemis
+            </summary>
+        </member>
         <member name="P:GameManager.PlanningAgent.enemyGold">
             <summary>
             The amount of the enemy's gold
@@ -176,7 +181,7 @@
             </summary>
             <param name="unitType"></param>
         </member>
-        <member name="M:GameManager.PlanningAgent.AttackEnemy(System.Collections.Generic.List{System.Int32},System.Collections.Generic.List{System.Int32})">
+        <member name="M:GameManager.PlanningAgent.AttackEnemy(System.String,System.Collections.Generic.List{System.Int32},System.Collections.Generic.List{System.Int32})">
             <summary>
             Attack the enemy
             </summary>
