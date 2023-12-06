@@ -29,12 +29,12 @@ namespace GameManager
         /// </summary>
         /// 
 
-        private float DESIRED_WORKERS = 10.5f;
+        private float DESIRED_WORKERS = 30f;
         private float MAX_BASES = 1.8f;
         private float MAX_BARRACKS = 4;
         private float MAX_REFINERIES = 0.75f;
         private float DESIRED_SOLDIERS = 20.5f;
-        private float DESIRED_ARCHERS = 30;
+        private float DESIRED_ARCHERS = 35;
         private float DESIRED_GOLD = 2000;
 
         private const int WORKER_OFFSET = 5;
@@ -255,7 +255,10 @@ namespace GameManager
             // For each worker
             foreach (int worker in myWorkers)
             {
-                buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainMineNbr).GridPosition)).ToList();
+                if (enemyWorkers.Count > 0)
+                {
+                    buildPositions = buildPositions.OrderBy(pos => Vector3Int.Distance(pos, GameManager.Instance.GetUnit(mainMineNbr).GridPosition)).ToList();
+                }
 
                 // Grab the unit we need for this function
                 Unit unit = GameManager.Instance.GetUnit(worker);
@@ -577,7 +580,7 @@ namespace GameManager
             // Pick the main mine for your faction
             if (mainMineNbr == -1 && mines.Count > 0 && myWorkers.Count > 0)
             {
-                mainMineNbr = FindClosestMineToWorker(myWorkers[0]);
+                mainMineNbr = FindClosestMineToWorker(enemyWorkers[0]);
             }
             else
             {
@@ -609,8 +612,14 @@ namespace GameManager
                 }
             }
 
-            TrackEnemyValues();
-            TrackAgentValues();
+            if (enemyWorkers.Count + enemyBases.Count > 0)
+            {
+                TrackEnemyValues();
+            }
+            if (myWorkers.Count + myBases.Count > 0)
+            {
+                TrackAgentValues();
+            }
         }
 
         /// <summary>
@@ -653,7 +662,7 @@ namespace GameManager
         private void CalculateHeuristics()
         {
             // State-Based Values. Gold and Bases not included because those are top priority always.
-            float trainWorkerValue = playerState == PlayerState.BuildBase ? 1.0f : 0.75f;
+            float trainWorkerValue = 1f;
             float trainSoldierValue = playerState == PlayerState.BuildArmy ? 1.0f : 0.7f;
             float trainArcherValue = playerState == PlayerState.BuildArmy ? 1.0f : 0.6f;
             float buildBarracksValue = playerState == PlayerState.BuildBase || playerState == PlayerState.BuildArmy ? 1.0f : 0.75f;
@@ -715,8 +724,9 @@ namespace GameManager
                 if (unit != null && unit.CurrentAction == UnitAction.IDLE && mainBaseNbr >= 0 && mainMineNbr >= 0)
                 {
                     // Grab the mine
-                    Unit mineUnit = GameManager.Instance.GetUnit(FindClosestMineToWorker(worker));
-                    Unit baseUnit = GameManager.Instance.GetUnit(mainBaseNbr);
+                    //Unit mineUnit = GameManager.Instance.GetUnit(FindClosestMineToWorker(worker));
+                    Unit mineUnit = GameManager.Instance.GetUnit(mainMineNbr);
+                    Unit baseUnit = GameManager.Instance.GetUnit(FindClosestBaseToWorker(worker));
                     if (mineUnit != null && baseUnit != null && mineUnit.Health > 0)
                     {
                         Gather(unit, mineUnit, baseUnit);
@@ -822,6 +832,37 @@ namespace GameManager
         }
 
         /// <summary>
+        /// Find the mine closest to the worker
+        /// </summary>
+        /// <param name="workerNbr"></param>
+        /// <returns></returns>
+        private int FindClosestBaseToWorker(int workerNbr)
+        {
+            int closestMineNbr = -1;
+            float minDistance = float.MaxValue;
+
+            // Get the position of the initial worker
+            Vector3Int workerPosition = GameManager.Instance.GetUnit(workerNbr).GridPosition;
+
+            // Find the closest mine
+            foreach (int baseNbr in myBases)
+            {
+                Unit baseUnit = GameManager.Instance.GetUnit(baseNbr);
+                if (baseUnit != null && baseUnit.Health > 0)
+                {
+                    float distance = Vector3Int.Distance(workerPosition, baseUnit.GridPosition);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        closestMineNbr = baseNbr;
+                    }
+                }
+            }
+
+            return closestMineNbr;
+        }
+
+        /// <summary>
         /// Keep track of the highest value that I get to in the round.
         /// </summary>
         private void TrackAgentValues()
@@ -859,6 +900,7 @@ namespace GameManager
         {
             if (enemyWorkers.Count > enemyStats["Worker Count"])
             {
+                Debug.LogWarning(enemyWorkers.Count);
                 enemyStats["Worker Count"] = enemyWorkers.Count;
             }
             if (enemySoldiers.Count > enemyStats["Soldier Count"])

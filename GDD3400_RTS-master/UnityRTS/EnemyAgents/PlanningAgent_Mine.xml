@@ -257,6 +257,13 @@
             <param name="workerNbr"></param>
             <returns></returns>
         </member>
+        <member name="M:GameManager.PlanningAgent.FindClosestBaseToWorker(System.Int32)">
+            <summary>
+            Find the mine closest to the worker
+            </summary>
+            <param name="workerNbr"></param>
+            <returns></returns>
+        </member>
         <member name="M:GameManager.PlanningAgent.TrackAgentValues">
             <summary>
             Keep track of the highest value that I get to in the round.
